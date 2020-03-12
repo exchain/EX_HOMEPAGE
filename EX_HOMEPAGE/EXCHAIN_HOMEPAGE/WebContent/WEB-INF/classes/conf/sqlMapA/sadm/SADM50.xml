@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADM50">
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+    <!-- 조회: TCMS_CF_MLNGG_SCRN_CD|TCMS_CF_MLNGG_USER_IN - 다국어화면정보-로딩 -->
+    <select id="SADM50010" parameterClass="HashMap" resultClass="LinkedHashMap">
+    	SELECT  *
+    	FROM	(
+		        SELECT
+		                CD_KEY              AS  CTT_KEY
+		            ,   LNGG_CD             AS  CTT_LANG
+		            ,   CD_NM               AS  CTT_TEXT
+		            ,   MLNGG_CD_KIND       AS  CTT_KIND
+		        FROM
+		                TCMS_CF_MLNGG_SCRN_CD
+		        UNION   ALL     ---------------------------
+		        SELECT
+		                CD_KEY              AS  CTT_KEY
+		            ,   LNGG_CD             AS  CTT_LANG
+		            ,   CD_NM               AS  CTT_TEXT
+		            ,   MLNGG_CD_KIND       AS  CTT_KIND
+		        FROM
+		                TCMS_CF_MLNGG_USER_IN
+		       )
+        ORDER BY
+                CTT_KEY,  CTT_LANG
+    </select>
+
+</sqlMap>

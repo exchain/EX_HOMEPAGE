@@ -1,0 +1,706 @@
+/*
+*테마 스타일 수정본
+*편집자	: 최은향
+*작성일자: 2013-03-25
+*/
+
+
+/* Layout helpers(레이아웃에 관한 스타일)
+----------------------------------*/
+.ui-helper-hidden { display: none; }
+.ui-helper-hidden-accessible { position: absolute !important; clip: rect(1px 1px 1px 1px); clip: rect(1px,1px,1px,1px); }
+.ui-helper-reset { margin: 0; padding: 0; border: 0; outline: 0; line-height: 1.3; text-decoration: none; font-size: 100%; list-style: none; }
+.ui-helper-clearfix:before, .ui-helper-clearfix:after { content: ""; display: table; }
+.ui-helper-clearfix:after { clear: both; }
+.ui-helper-clearfix { zoom: 1; }
+.ui-helper-zfix { width: 100%; height: 100%; top: 0; left: 0; position: absolute; opacity: 0; filter:Alpha(Opacity=0); }
+
+
+/* Interaction Cues
+----------------------------------*/
+.ui-state-disabled { cursor: default !important; }
+
+/* Misc visuals
+----------------------------------*/
+
+/* Overlays(오버레이에 관한 스타일) */
+.ui-widget-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.ui-resizable { position: relative; }
+.ui-resizable-handle { position: absolute;font-size: 0.1px; display: block; }
+.ui-resizable-disabled .ui-resizable-handle, .ui-resizable-autohide .ui-resizable-handle { display: none; }
+.ui-resizable-n { cursor: n-resize; height: 7px; width: 100%; top: -5px; left: 0; }
+.ui-resizable-s { cursor: s-resize; height: 7px; width: 100%; bottom: -5px; left: 0; }
+.ui-resizable-e { cursor: e-resize; width: 7px; right: -5px; top: 0; height: 100%; }
+.ui-resizable-w { cursor: w-resize; width: 7px; left: -5px; top: 0; height: 100%; }
+.ui-resizable-se { cursor: se-resize; width: 12px; height: 12px; right: 1px; bottom: 1px; }
+.ui-resizable-sw { cursor: sw-resize; width: 9px; height: 9px; left: -5px; bottom: -5px; }
+.ui-resizable-nw { cursor: nw-resize; width: 9px; height: 9px; left: -5px; top: -5px; }
+.ui-resizable-ne { cursor: ne-resize; width: 9px; height: 9px; right: -5px; top: -5px; }
+.ui-selectable-helper { position: absolute; z-index: 100; border:1px dotted black; }
+.ui-accordion .ui-accordion-header { display: block; cursor: pointer; position: relative; margin-top: 2px; padding: 0em .5em 0em .7em; zoom: 1; }
+.ui-accordion .ui-accordion-icons { padding-left: 2.2em; }
+.ui-accordion .ui-accordion-noicons { padding-left: .7em; }
+.ui-accordion .ui-accordion-icons .ui-accordion-icons { padding-left: 2.2em; }
+.ui-accordion .ui-accordion-header .ui-accordion-header-icon { position: absolute; right: 1.2em; top: 50%; margin-top: -8px; }
+.ui-accordion .ui-accordion-content { padding: 1em 2.2em; border-top: 0; overflow: auto; zoom: 1; }
+
+.ui-autocomplete {
+	position: absolute;
+	top: 0; /* #8656 */
+	cursor: default;
+}
+
+/* workarounds(라디오버튼에 관한 스타일) */
+* html .ui-autocomplete { width:1px; } /* without this, the menu expands to 100% in IE6 */
+.ui-button { display: inline-block; position: relative; margin-right: .1em;cursor: pointer; text-align: center; zoom: 1; overflow: visible; height:20px ; font-family:Arial, Frutiger55Roman, Times New Roman !important ; font-size:12px; } /* 버튼 높이 조절 the overflow property removes extra width in IE */
+.ui-button, .ui-button:link, .ui-button:visited, .ui-button:hover, .ui-button:active { text-decoration: none; }
+.ui-button-icon-only { width: 2.2em; } /* to make room for the icon, a width needs to be set here */
+button.ui-button-icon-only { width: 2.4em; } /* button elements seem to need a little more width */
+.ui-button-icons-only { width: 3.4em; } 
+button.ui-button-icons-only { width: 3.7em; } 
+
+/*button text element(라디오버튼 및 체크박스에 관한 스타일 -가로 세로길이-) */
+.ui-button .ui-button-text { display: block; line-height: .35; }
+.ui-button-text-only .ui-button-text { padding: .7em .5em .45em .4em; }
+.ui-button-icon-only .ui-button-text, .ui-button-icons-only .ui-button-text {  text-indent: -9999999px; }
+.ui-button-text-icon-primary .ui-button-text, .ui-button-text-icons .ui-button-text { padding: .7em .7em .5em 1.9em; }
+.ui-button-text-icon-secondary .ui-button-text, .ui-button-text-icons .ui-button-text { padding: .7em 2.1em .5em 1em; }
+.ui-button-text-icons .ui-button-text { padding-left: 2.1em; padding-right: 2.1em; }
+/* no icon support for input elements, provide padding by default */
+input.ui-button { padding: .4em 1em 1.3em 1em; }
+
+/*button icon element(s) */
+.ui-button-icon-only .ui-icon, .ui-button-text-icon-primary .ui-icon, .ui-button-text-icon-secondary .ui-icon, .ui-button-text-icons .ui-icon, .ui-button-icons-only .ui-icon { position: absolute; top: 50%; margin-top: -8px; }
+.ui-button-icon-only .ui-icon { left: 50%; margin-left: -8px; }
+.ui-button-text-icon-primary .ui-button-icon-primary, .ui-button-text-icons .ui-button-icon-primary, .ui-button-icons-only .ui-button-icon-primary { left: .1em; }
+.ui-button-text-icon-secondary .ui-button-icon-secondary, .ui-button-text-icons .ui-button-icon-secondary, .ui-button-icons-only .ui-button-icon-secondary { right: .5em; }
+.ui-button-text-icons .ui-button-icon-secondary, .ui-button-icons-only .ui-button-icon-secondary { right: .5em; }
+
+/*button sets (버튼의 여백 스타일)*/
+.ui-buttonset { margin-right: 7px;  }
+.ui-buttonset .ui-button { margin-left: 0; margin-right: -.3em; }
+
+/* workarounds (달력의 스타일)*/
+button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra padding in Firefox */
+.ui-datepicker { width: 180px; padding: .2em .2em 0; display: none; font-size:12px; } /* 달력 넓이*/
+.ui-datepicker .ui-datepicker-header { position:relative; padding:.2em 0; }
+.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { position:absolute; top: 2px; width: 1.8em; height: 1.8em; }
+.ui-datepicker .ui-datepicker-prev-hover, .ui-datepicker .ui-datepicker-next-hover { top: 1px; }
+.ui-datepicker .ui-datepicker-prev { left:2px; }
+.ui-datepicker .ui-datepicker-next { right:2px; }
+.ui-datepicker .ui-datepicker-prev-hover { left:1px; }
+.ui-datepicker .ui-datepicker-next-hover { right:1px; }
+.ui-datepicker .ui-datepicker-prev span, .ui-datepicker .ui-datepicker-next span { display: block; position: absolute; left: 50%; margin-left: -8px; top: 50%; margin-top: -8px; }
+.ui-datepicker .ui-datepicker-title { margin: 0 2.3em; line-height: 1.8em; text-align: center; color:#FFF; }
+.ui-datepicker .ui-datepicker-title select { font-size:1em; margin:1px 0; }
+.ui-datepicker select.ui-datepicker-month-year { width: 100%; }
+.ui-datepicker select.ui-datepicker-month, 
+.ui-datepicker select.ui-datepicker-year { width: 49%; }
+.ui-datepicker table { width: 100%;  font-size:12px; border-collapse: collapse; margin:0 0 .4em; }
+.ui-datepicker th { padding: .7em .0em; text-align: center; font-weight: bold; border: 0; }
+.ui-datepicker td { border: 0; padding: 1px; }
+.ui-datepicker td span, .ui-datepicker td a { display: block; padding: .2em .1em .2em .1em; text-align: right; text-decoration: none; margin:0px; } 
+.ui-datepicker .ui-datepicker-buttonpane { background-image: none; margin: .7em 0 0 0; padding:0 .2em; border-left: 0; border-right: 0; border-bottom: 0; }
+.ui-datepicker .ui-datepicker-buttonpane button { float: right; margin: .1em .2em .1em; cursor: pointer; padding: .2em .1em .3em .1em; width:auto; overflow:visible; }
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current { float:left; }
+
+/* with multiple calendars */
+.ui-datepicker.ui-datepicker-multi { width:auto; }
+.ui-datepicker-multi .ui-datepicker-group { float:left; }
+.ui-datepicker-multi .ui-datepicker-group table { width:95%; margin:0 auto .4em; }
+.ui-datepicker-multi-2 .ui-datepicker-group { width:50%; }
+.ui-datepicker-multi-3 .ui-datepicker-group { width:33.3%; }
+.ui-datepicker-multi-4 .ui-datepicker-group { width:25%; }
+.ui-datepicker-multi .ui-datepicker-group-last .ui-datepicker-header { border-left-width:0; }
+.ui-datepicker-multi .ui-datepicker-group-middle .ui-datepicker-header { border-left-width:0; }
+.ui-datepicker-multi .ui-datepicker-buttonpane { clear:left; }
+.ui-datepicker-row-break { clear:both; width:100%; font-size:0em; }
+
+/* RTL support */
+.ui-datepicker-rtl { direction: rtl; }
+.ui-datepicker-rtl .ui-datepicker-prev { right: 2px; left: auto; }
+.ui-datepicker-rtl .ui-datepicker-next { left: 2px; right: auto; }
+.ui-datepicker-rtl .ui-datepicker-prev:hover { right: 1px; left: auto; }
+.ui-datepicker-rtl .ui-datepicker-next:hover { left: 1px; right: auto; }
+.ui-datepicker-rtl .ui-datepicker-buttonpane { clear:right; }
+.ui-datepicker-rtl .ui-datepicker-buttonpane button { float: left; }
+.ui-datepicker-rtl .ui-datepicker-buttonpane button.ui-datepicker-current { float:right; }
+.ui-datepicker-rtl .ui-datepicker-group { float:right; }
+.ui-datepicker-rtl .ui-datepicker-group-last .ui-datepicker-header { border-right-width:0; border-left-width:1px; }
+.ui-datepicker-rtl .ui-datepicker-group-middle .ui-datepicker-header { border-right-width:0; border-left-width:1px; }
+
+/* IE6 IFRAME FIX (taken from datepicker 1.5.3 */
+.ui-datepicker-cover {
+    position: absolute; /*must have*/
+    z-index: -1; /*must have*/
+    filter: mask(); /*must have*/
+    top: -4px; /*must have*/
+    left: -4px; /*must have*/
+    width: 200px; /*must have*/
+    height: 200px; /*must have*/
+	}
+.ui-dialog { position: absolute; padding: .2em; width: 300px; overflow: hidden; }
+.ui-dialog .ui-dialog-titlebar { padding: .4em 1em; position: relative; }
+.ui-dialog .ui-dialog-title { float: left; margin: .1em 16px .1em 0; }
+.ui-dialog .ui-dialog-titlebar-close { position: absolute; right: .3em; top: 50%; width: 19px; margin: -10px 0 0 0; padding: 1px; height: 18px; }
+.ui-dialog .ui-dialog-titlebar-close span { display: block; margin: 1px; }
+.ui-dialog .ui-dialog-titlebar-close:hover, .ui-dialog .ui-dialog-titlebar-close:focus { padding: 0; }
+.ui-dialog .ui-dialog-content { position: relative; border: 0; padding: .5em 1em; background: #FFF; overflow: auto; zoom: 1; }
+.ui-dialog .ui-dialog-buttonpane { text-align: left; border-width: 1px 0 0 0; background-image: none; margin: .5em 0 0 0; padding: .3em 1em .5em .4em; }
+.ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset { float: right; }
+.ui-dialog .ui-dialog-buttonpane button { margin: .5em .4em .5em 0; cursor: pointer; }
+.ui-dialog .ui-resizable-se { width: 14px; height: 14px; right: 3px; bottom: 3px; }
+.ui-draggable .ui-dialog-titlebar { cursor: move; }
+.ui-menu { list-style:none; padding: 2px; margin: 0; display:block; outline: none; }
+.ui-menu .ui-menu { margin-top: -3px; position: absolute; }
+.ui-menu .ui-menu-item { margin: 0; padding: 0; zoom: 1; width: 100%; }
+.ui-menu .ui-menu-divider { margin: 5px -2px 5px -2px; height: 0; font-size: 0; line-height: 0; border-width: 1px 0 0 0; }
+.ui-menu .ui-menu-item a { text-decoration: none; display: block; padding: 2px .4em; line-height: 1.5; zoom: 1; font-weight: normal; }
+.ui-menu .ui-menu-item a.ui-state-focus,
+.ui-menu .ui-menu-item a.ui-state-active { font-weight: normal; margin: -1px; }
+
+.ui-menu .ui-state-disabled { font-weight: normal; margin: .4em 0 .2em; line-height: 1.5; }
+.ui-menu .ui-state-disabled a { cursor: default; }
+
+/* icon support */
+.ui-menu-icons { position: relative; }
+.ui-menu-icons .ui-menu-item a { position: relative; padding-left: 2em; }
+
+/* left-aligned */
+.ui-menu .ui-icon { position: absolute; top: .2em; left: .2em; }
+
+/* right-aligned(슬라이더& 프로그레스바 스타일) */
+.ui-menu .ui-menu-icon { position: static; float: right; }
+.ui-progressbar { height:2em; text-align: left; overflow: hidden; }
+.ui-progressbar .ui-progressbar-value { margin: -1px; height:100%; }.ui-slider { position: relative; text-align: left; }
+.ui-slider .ui-slider-handle { position: absolute; z-index: 2; width: 1.2em; height: 1.2em; cursor: default; }
+.ui-slider .ui-slider-range { position: absolute; z-index: 1; font-size: .7em; display: block; border: 0; background-position: 0 0; }
+
+.ui-slider-horizontal { height: .8em; }
+.ui-slider-horizontal .ui-slider-handle { top: -.3em; margin-left: -.6em; }
+.ui-slider-horizontal .ui-slider-range { top: 0; height: 100%; }
+.ui-slider-horizontal .ui-slider-range-min { left: 0; }
+.ui-slider-horizontal .ui-slider-range-max { right: 0; }
+
+.ui-slider-vertical { width: .8em; height: 100px; }
+.ui-slider-vertical .ui-slider-handle { left: -.3em; margin-left: 0; margin-bottom: -.6em; }
+.ui-slider-vertical .ui-slider-range { left: 0; width: 100%; }
+.ui-slider-vertical .ui-slider-range-min { bottom: 0; }
+.ui-slider-vertical .ui-slider-range-max { top: 0; }.ui-spinner { position:relative; display: inline-block; overflow: hidden; padding: 0; vertical-align: middle; }
+
+.ui-tabs { position: relative; width:100%; padding:0; zoom: 1; font-size:12px !important; } /* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
+.ui-tabs .ui-tabs-nav { overflow:hidden; margin:0; padding:0; width:auto; left:256px; right:17px; position:fixed;  background:#FFF; border-bottom-color:#c3c3c3; border-top-color:#FFF; border-left-color:#FFF; border-right-color:#FFF; z-index:20; }
+	/* tab 라운드 */
+.ui-tabs .ui-tabs-nav li 
+{ list-style: none; float: left; position: relative; top: 1 !important; margin: 6px .0em 0 0; padding: 0; white-space: nowrap;
+-moz-border-radius-topleft: 5px;-webkit-border-top-left-radius: 5px;-khtml-border-top-left-radius: 5px; border-top-left-radius: 5px;
+-moz-border-radius-topright: 5px; -webkit-border-top-right-radius: 5px; -khtml-border-top-right-radius: 5px; border-top-right-radius: 5px;
+-moz-border-radius-bottomleft: 0px; -webkit-border-bottom-left-radius: 0px; -khtml-border-bottom-left-radius: 0px; border-bottom-left-radius: 0px;
+-moz-border-radius-bottomright: 0px; -webkit-border-bottom-right-radius: 0px; -khtml-border-bottom-right-radius: 0px; border-bottom-right-radius: 0px; }
+.ui-tabs .ui-tabs-nav li a { float: left; padding: .5em 1em; text-decoration: none; }
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a, .ui-tabs .ui-tabs-nav li.ui-state-disabled a, .ui-tabs .ui-tabs-nav li.ui-tabs-loading a { cursor: text; }
+.ui-tabs .ui-tabs-nav li a, .ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-active a { cursor: pointer; } /* first selector in group seems obsolete, but required to overcome bug in Opera applying cursor: text overall if defined elsewhere... */
+.ui-tabs .ui-tabs-panel { display: block; padding: 0.5em 0em 1.3em 0em; background: #FFF; }
+.ui-tabs .ui-tabs-nav .ui-state-default, .ui-tabs .ui-tabs-nav .ui-widget-content .ui-state-default, .ui-tabs .ui-tabs-nav .ui-widget-header .ui-state-default 
+{ border: 1px solid #c3c3c3; background: #e1e1e1; font-weight: normal; font-weight:bold; }
+.ui-tabs .ui-tabs-nav .ui-state-default a, .ui-tabs .ui-tabs-nav .ui-state-default a:link, .ui-tabs .ui-tabs-nav .ui-state-default a:visited 
+{ color: #7c7c7c; font-weight:bold;  text-decoration: none; }
+.ui-tabs .ui-tabs-nav .ui-state-hover, .ui-tabs .ui-tabs-nav .ui-widget-content .ui-state-hover, .ui-tabs .ui-tabs-nav .ui-widget-header .ui-state-hover, .ui-tabs .ui-tabs-nav .ui-state-focus, 
+.ui-tabs .ui-tabs-nav .ui-widget-content .ui-state-focus, .ui-tabs .ui-tabs-nav .ui-widget-header .ui-state-focus 
+{ border: 1px solid #939393; background: #FFF; font-weight: normal; font-weight:bold; }
+.ui-tabs .ui-tabs-nav .ui-state-hover a, .ui-tabs .ui-tabs-nav .ui-state-hover a:hover, .ui-tabs .ui-tabs-nav .ui-state-hover a:link, .ui-tabs .ui-tabs-nav .ui-state-hover a:visited 
+{ color: #575757;font-weight:bold;  text-decoration: none; }
+	/* 선택된 tab 스타일 */
+.ui-tabs .ui-tabs-nav .ui-state-active, .ui-tabs .ui-tabs-nav .ui-widget-content .ui-state-active, .ui-tabs .ui-tabs-nav .ui-widget-header .ui-state-active 
+{ border-top: 1px solid #699dc4; border-right: 1px solid #699dc4; border-bottom: 1px solid #FFF;border-left: 1px solid #699dc4; color:#FFF; font-weight: normal; font-weight:bold; }
+.ui-tabs .ui-tabs-nav .ui-state-active a, .ui-tabs .ui-tabs-nav .ui-state-active a:link, .ui-tabs .ui-tabs-nav .ui-state-active a:visited 
+{ font-weight:bold; text-decoration: none; color:#565656; }
+.ui-tabs .ui-tabs-nav{ height:34px; }
+	/* 선택된 tab 백그라운드 스타일 */
+.ui-tabs .ui-tabs-nav li.ui-tabs-active { background: url(./img/fwf_tab_bg.jpg) 50% 50% repeat-x; }
+
+.ui-tooltip {
+	padding: 8px;
+	position: absolute;
+	z-index: 9999;
+	max-width: 300px;
+	-webkit-box-shadow: 0 0 5px #aaa;
+	box-shadow: 0 0 5px #aaa;
+}
+/* Fades and background-images don't work well together in IE6, drop the image */
+* html .ui-tooltip {
+	background-image: none;
+}
+body .ui-tooltip { border-width: 2px; background-color:#FFF; }
+
+/* Component containers (테마가 들어간 body 부분의 라운드진 이미지 스타일)
+----------------------------------*/
+.ui-widget { font-family: segoe ui,Arial,sans-serif; font-size: 1.1em; }
+.ui-widget .ui-widget { font-size: 1em; }
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: segoe ui,Arial,sans-serif; font-size: 1em; }
+.ui-widget-content { background: #FFF; color: #312e25; }
+.ui-widget-content a {  }
+.ui-widget-header { border-top: 1px solid #d4ccb0; border-right: 0px solid #d4ccb0; border-bottom: 1px solid #d4ccb0; border-left: 0px solid #d4ccb0; color: #433f38; font-weight: bold; }
+.ui-widget-header a { color: #433f38; }
+
+/* Interaction states (테마 컬러가 들어간 header라운드진 이미지 스타일)
+----------------------------------*/
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default { border-top: 1px solid #339112; border-right: 1px solid #34a71e; border-bottom: 1px solid #34a71e; border-left: 1px solid #339112; background: #FFF url(../images/btn_bg_green.png) 0% 50% repeat-x; font-weight: bold; color: #FFF; }
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited { text-decoration: none; }
+.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus { border: 1px solid #327E04; background: #cee5f8; font-weight: normal; color: #2d86d8; }
+.ui-state-hover a, .ui-state-hover a:hover, .ui-state-hover a:link, .ui-state-hover a:visited { text-decoration: none; }
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active { border: 1px solid #c9c9c9; background: #fafaf4 50% 50% repeat-x; font-weight: bold; }
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { text-decoration: none; }
+
+/* Interaction Cues----------------------------------*/
+	/* 클릭후 스타일 */
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight  { background: #cee5f8 !important; }
+.ui-state-highlight a, .ui-widget-content .ui-state-highlight a,.ui-widget-header .ui-state-highlight a { color: #363636; }
+.ui-state-error, .ui-widget-content .ui-state-error, .ui-widget-header .ui-state-error { border: 1px solid #e3a345; background: #ffedad url(../images/ui-bg_highlight-soft_95_ffedad_1x100.png) 50% top repeat-x; color: #cd5c0a; }
+.ui-state-error a, .ui-widget-content .ui-state-error a, .ui-widget-header .ui-state-error a { color: #cd5c0a; }
+.ui-state-error-text, .ui-widget-content .ui-state-error-text, .ui-widget-header .ui-state-error-text { color: #cd5c0a; }
+.ui-priority-primary, .ui-widget-content .ui-priority-primary, .ui-widget-header .ui-priority-primary { font-weight: bold; }
+.ui-priority-secondary, .ui-widget-content .ui-priority-secondary,  .ui-widget-header .ui-priority-secondary { opacity: .7; filter:Alpha(Opacity=70); font-weight: normal; }
+.ui-state-disabled, .ui-widget-content .ui-state-disabled, .ui-widget-header .ui-state-disabled { opacity: .35; filter:Alpha(Opacity=35); }
+.ui-state-disabled .ui-icon { filter:Alpha(Opacity=35); } /* For IE8 - See #6059 */
+
+/* Icons
+----------------------------------*/
+/* states and images(이미지 alt 명칭 숨김 스타일) */
+/*
+.ui-icon { width: 16px; height: 16px; background-image: url(../images/ui-icons.png); display: inline-block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat; }
+.ui-widget-content .ui-icon { background-image: url(../images/ui-icons.png); }
+.ui-widget-header .ui-icon { background-image: url(../images/ui-icons.png); }
+.ui-state-default .ui-icon { background-image: url(../images/ui-icons.png); }
+.ui-state-hover .ui-icon, .ui-state-focus .ui-icon { background-image: url(../images/ui-icons.png); }
+.ui-state-active .ui-icon { background-image: url(../images/ui-icons.png); }
+.ui-state-highlight .ui-icon { background-image: url(../images/ui-icons.png); }
+.ui-state-error .ui-icon, .ui-state-error-text .ui-icon { background-image: url(../images/ui-icons.png); }
+*/
+
+/* positioning (아이콘 이미지에 각 아이콘에 대한 위치 설정)*/
+
+/* sort 아이콘*/
+.ui-icon-triangle-1-n { background-position: 0px 0px; margin-left:0px; }
+.ui-icon-triangle-1-s { background-position: -65px 0px; margin-left:0px; }
+
+/* grid search */
+.ui-icon-search { background-image: url(../images/ui-icons_666466_256x240.png) !important; background-position: -160px -112px; }
+.EditButton .ui-icon-search { background-image: url(../images/ui-icons.png) !important; background-position: 0px -32px !important; }
+.ui-icon-arrowreturnthick-1-w { background-position: -240px -32px; }
+
+/* grid 페이지 아이콘 */
+.ui-icon-seek-first { background-image: url(../images/ui-icons_666466_256x240.png) !important; background-position: -80px -160px; }
+.ui-icon-seek-prev { background-image: url(../images/ui-icons_666466_256x240.png) !important; background-position: -48px -160px; }
+.ui-icon-seek-next { background-image: url(../images/ui-icons_666466_256x240.png) !important; background-position: -32px -160px; }
+.ui-icon-seek-end { background-image: url(../images/ui-icons_666466_256x240.png) !important; background-position: -64px -160px; }
+.ui-separator {}
+
+/* fwf-icon 계열 */
+.ui-datepicker-trigger	{ cursor:pointer; }
+.fwf-icon-calendar		{ background-position: 0px 0px; cursor:pointer; }
+.fwf-icon-pay				{ background-position: -30px 0px; }
+.fwf-icon-notice			{ background-position: -60px 0px; }
+.fwf-icon-ok				{ background-position: -90px 0px; }
+.fwf-icon-error			{ background-position: -120px 0px; cursor:pointer; }
+.fwf-icon-plus			{ width:19px; background-position: -150px 0px; }
+.fwf-icon-minus			{ width:19px; background-position: -180px 0px; }
+.fwf-icon-title				{ width: 6px; height: 16px; background-position: -210px 0px; }
+.fwf-icon-help			{ background-position: -240px 0px; }
+.fwf-icon-help-dis		{ background-position: -256px 0px; }
+.fwf-icon-folder			{ background-position: -264px 0px; }
+.fwf-icon-file				{ background-position: -280px 0px; }
+.fwf-icon-notice-dis		{ background-position: -305px 0px; }
+.fwf-icon-pay-dis			{ background-position: -328px 0px; }
+.fwf-icon-stamp			{ background-position: -352px 0px; }
+.fwf-icon-check2			{ background-position: -368px 0px; }
+.fwf-icon-green-dot		{ background-position: -384px 0px; }
+.fwf-icon-stamp-ok		{ background-position: -400px 0px; }
+.fwf-icon-menufile		{ background-position: -440px 0px; }
+.fwf-icon-home			{ background-position: -460px 0px; height: 12px; }
+.fwf-icon-human			{ background-position: 4px -16px; }
+.fwf-icon-close			{ background-position: -16px -16px; }
+.fwf-icon-new			{ background-position: -32px -16px; }
+.fwf-icon-star				{ background-position: -48px -16px; }
+.fwf-icon-star2			{ background-position: -64px -16px; }
+.fwf-icon-star_b			{ background-position: -128px -16px; }
+.fwf-icon-title2			{ background-position: -76px -16px; }
+.fwf-icon-arrow-l			{ background-position: -92px -16px; }
+.fwf-icon-arrow-r		{ background-position: -108px -16px; }
+.fwf-icon-excel			{ background-position: 0px -328px; cursor:pointer; margin-left:1px; }
+.fwf-icon-excel span		{ padding: 10px; }
+.fwf-icon-table			{ background-position: -24px -328px; display:inline-block; margin:-3px 2px -2px -3px; }
+.fwf-icon-line			{ background-position: -48px -328px; display:inline-block; margin:-3px 2px -2px -3px; }
+.fwf-icon-graph			{ background-position: -72px -328px; display:inline-block; margin:-3px 2px -2px -3px; }
+
+.fwf-icon-up3				{ background-position: 0px -300px; height:12px; margin-top:0px; }
+.fwf-icon-down3			{ background-position: -30px -300px; height:12px; margin-top:0px; }
+.fwf-icon-bank01		{ width:25px; background-position: -60px -300px; margin:8px 30px 0px 35px; }	/* 일반예금 */
+.fwf-icon-bank02		{ width:25px; background-position: -90px -300px; margin:8px 30px 0px 35px; }	/* 정기예금 */
+.fwf-icon-bank03		{ width:25px; background-position: -120px -300px; margin:8px 30px 0px 35px; }/* 정기적금 */
+.fwf-icon-bank04		{ width:25px; background-position: -150px -300px; margin:8px 30px 0px 35px; }/* 신탁 */
+.fwf-icon-bank05		{ width:25px; background-position: -180px -300px; margin:8px 30px 0px 35px; }/* 외화예금 */
+.fwf-icon-bank06		{ width:25px; background-position: -210px -300px; margin:8px 30px 0px 35px; }/* 원화대출 */
+.fwf-icon-bank07		{ width:25px; background-position: -240px -300px; margin:8px 30px 0px 35px; }/* 외화대출 */
+.fwf-icon-bank08		{ width:25px; background-position: -270px -300px; margin:8px 30px 0px 35px; }/* 수익증권 */
+.fwf-icon-bank09		{ width:25px; background-position: -300px -300px; margin:8px 30px 0px 35px; }/* 어음 */
+.fwf-icon-bank10		{ width:25px; background-position: -330px -300px; margin:8px 30px 0px 35px; }/* 당좌예금 */
+.fwf-icon-bank11		{ width:25px; background-position: -360px -300px; margin:8px 30px 0px 35px; }/* 골드예금 */
+
+.fwf-icon-search-w		{ background-position: 0px -32px; }
+.fwf-icon-plus-w			{ background-position: -16px -32px; }
+.fwf-icon-pen-w			{ background-position: -32px -32px; }
+.fwf-icon-page-w		{ background-position: -48px -32px; }
+.fwf-icon-insert-w		{ background-position: -64px -32px; }
+.fwf-icon-folder-w		{ background-position: -80px -32px; }
+.fwf-icon-excel-w		{ background-position: -96px -32px; }
+.fwf-icon-close-w		{ background-position: -112px -32px; }
+.fwf-icon-arrow-w		{ background-position: -128px -32px; }
+.fwf-icon-check-w		{ background-position: -144px -32px; }
+.fwf-icon-nomal-w		{ background-position: -160px -32px; }
+.fwf-icon-garbage-w	{ background-position: -176px -32px; }
+.fwf-icon-disk-w			{ background-position: -192px -32px; }
+.fwf-icon-download-w	{ background-position: -208px -32px; }
+.fwf-icon-upload-w		{ background-position: -224px -32px; }
+.fwf-icon-return-w		{ background-position: -240px -32px; }
+.fwf-icon-disk2-w		{ background-position: -256px -32px; }
+.fwf-icon-money-w		{ background-position: 0px -48px; }
+.fwf-icon-window-w		{ background-position: -16px -48px; }
+.fwf-icon-account-w		{ background-position: -32px -48px; }
+.fwf-icon-print-w			{ background-position: -48px -48px; }
+.fwf-icon-addrow-w		{ background-position: -272px -32px; }	/* 행추가 아이콘 */
+
+.fwf-icon-search-b		{ background-position: 0px -64px; }
+.fwf-icon-plus-b			{ background-position: -16px -64px; }
+.fwf-icon-pen-b			{ background-position: -32px -64px; }
+.fwf-icon-page-b			{ background-position: -48px -64px; }
+.fwf-icon-insert-b		{ background-position: -64px -64px; }
+.fwf-icon-folder-b		{ background-position: -80px -64px; }
+.fwf-icon-excel-b			{ background-position: -96px -64px; }
+.fwf-icon-close-b			{ background-position: -112px -64px; }
+.fwf-icon-arrow-b		{ background-position: -128px -64px; }
+.fwf-icon-check-b		{ background-position: -144px -64px; }
+.fwf-icon-nomal-b		{ background-position: -160px -64px; }
+.fwf-icon-garbage-b		{ background-position: -176px -64px; }
+.fwf-icon-disk-b			{ background-position: -192px -64px; }
+.fwf-icon-download-b	{ background-position: -208px -64px; }
+.fwf-icon-upload-b		{ background-position: -224px -64px; }
+.fwf-icon-return-b		{ background-position: -240px -64px; }
+.fwf-icon-disk2-b		{ background-position: -256px -64px; }
+.fwf-icon-money-b		{ background-position: 0px -80px; }
+.fwf-icon-window-b		{ background-position: -16px -80px; }
+.fwf-icon-account-b		{ background-position: -32px -80px; }
+.fwf-icon-print-b		{ background-position: -48px -80px; }
+
+/* fwf-btn 계열 */
+.fwf-icon-fullscreen	{ width: 30px; height: 30px;  background-position: 0px -150px; }
+.fwf-icon-allclose      { width: 30px; height: 30px; background-position: -240px -150px; }
+.fwf-icon-oneclose      { width: 30px; height: 30px; background-position: -270px -150px; }
+.fwf-icon-prev-dis		{ width: 18px; height: 30px; background-position: -30px -150px; }
+.fwf-icon-next-dis		{ width: 18px; height: 30px; background-position: -60px -150px; }
+.fwf-icon-normalscreen	{ width: 30px; height: 30px; background-position: -90px -150px; }
+.fwf-icon-prev			{ width: 18px; height: 30px; background-position: -120px -150px; cursor:pointer; }
+.fwf-icon-next			{ width: 18px; height: 30px; background-position: -150px -150px; cursor:pointer; }
+.fwf-icon-up				{ background-position: -180px -150px; }
+.fwf-icon-down			{ background-position: -210px -150px; }
+.fwf-icon-up2				{ background-position: -180px -180px; }
+.fwf-icon-down2			{ width:16px; background-position: -90px -180px; }
+.fwf-icon-view			{ width: 41px; height: 19px; background-position: 0px -180px; }
+.fwf-icon-search-s		{ background-position: 0px -112px; cursor:pointer; width:20px; position:relative; bottom:-3px; }	/* 실행자 display: inline-block;  position: relative; */
+.fwf-icon-more			{ background-position: -18px -112px; cursor:pointer; width:20px; position:relative; bottom:-3px; }	/* 결재선 */
+.calendar-l .fwf-icon-search-s		{ bottom:0px; }
+.calendar-l .fwf-icon-more			{ bottom:0px; }
+.fwf-icon-delet-s			{ background-position: -224px -112px; cursor:pointer; }
+.fwf-icon-delet-d			{ background-position: -224px -112px; cursor:default; filter:Alpha(Opacity=55); }
+.ui-icon-closethick		{ width: 19px; height: 19px; background-position: -60px -180px; }
+
+/* 결재상태별 아이콘*/
+.fwf-icon-pay01			{ background-position: -64px -112px; margin-top:0px !important; }	/* 임시저장 */
+.fwf-icon-pay02			{ background-position: -80px -112px; margin-top:0px !important; }	/* 진행중 */
+.fwf-icon-pay03			{ background-position: -96px -112px; margin-top:0px !important; }	/* 대기 */
+.fwf-icon-pay04			{ background-position: -112px -112px; margin-top:0px !important; }	/* 반려 */
+.fwf-icon-pay05			{ background-position: -128px -112px; margin-top:0px !important; }	/* 완료 */
+
+/* 확인여부아이콘*/
+.fwf-icon-fileopen		{ height: 18px; background-position: -248px -111px; margin:2px 8px 0px 8px; }
+.fwf-icon-fileclose		{ height: 16px; background-position: -264px -111px; margin:0px 8px 0px 8px; }
+
+/* tab 이미지 */
+.fwf-icon-tab01			{ width: 20px; height: 20px; background-position: -300px -112px; } /* 자금현황 */
+.fwf-icon-tab02			{ width: 20px; height: 20px; background-position: -328px -112px; } /* 자금지급 */
+.fwf-icon-tab03			{ width: 20px; height: 20px; background-position: -360px -112px; } /* 자금수납 */
+.fwf-icon-tab04			{ width: 20px; height: 20px; background-position: -391px -112px; } /* 법인카드 */
+.fwf-icon-tab05			{ width: 20px; height: 20px; background-position: -424px -112px; } /* 마이페이지 */
+.fwf-icon-tab06			{ width: 20px; height: 20px; background-position: -456px -112px; } /* 환경설정 */
+
+.ui-icon-gripsmall-diagonal-se		{ background-position: -80px -80px; }
+.ui-icon-grip-diagonal-se			{ background-position: -80px -80px; }
+.ui-icon-circle-triangle-e			{ width: 18px; height: 18px; background-position: -30px -210px; }	/*달력 다음달 아이콘*/
+.ui-icon-circle-triangle-w			{ width: 18px; height: 18px; background-position: 0px -210px; }	/*달력 이전달 아이콘*/
+/* Misc visuals
+----------------------------------*/
+
+/* Overlays(오버 레이했을때 스타일) */
+/*
+.ui-widget-overlay { background: #2b2922 url(../images/ui-bg_inset-soft_15_2b2922_1x100.png) 50% bottom repeat-x; opacity:.2; filter:Alpha(Opacity=20); }
+*/
+.ui-widget-overlay { background: #2b2922; opacity:.2; filter:Alpha(Opacity=20); }
+.sub_grid .ui-widget-overlay { background: none !important; } /* grid 영역에서 overlay 효과 빼기 */
+.ui-widget-shadow { margin: -12px 0 0 -12px; padding: 12px; background: #cccccc url(../images/ui-bg_highlight-hard_95_cccccc_1x100.png) 50% top repeat-x; opacity: .2;filter:Alpha(Opacity=20); -moz-border-radius: 10px; -khtml-border-radius: 10px; -webkit-border-radius: 10px; border-radius: 10px; }
+
+/* 탭 네비게이터 (11.21 이병직) */
+.fwf-tabs-navi { padding-top: 2px; margin: 0; float:right; font-size: 11px; }
+.fwf-tabs-navi .ui-icon { float: left; margin: 0.4em 0.1em 0 0; }
+
+/* 탭 닫기 아이콘 (11.27 이병직) */
+.ui-tabs-nav span.ui-icon.fwf-icon-close { float: left; }
+
+/* 버튼 테두리(메인 결재함,알림함) */
+.button_pay.ui-button, .button_notice.ui-button, .brief_button_pay.ui-button, .brief_button_notice.ui-button,.box_blue { height:25px; border: 1px solid #3181e2; color: #575757; background: #FFF; }
+.button_pay .ui-button-text, .button_notice .ui-button-text, .brief_button_pay .ui-button-text, .brief_button_notice .ui-button-text  { line-height:11px; }
+.button_pay a , .button_notice a, .brief_button_pay a, .brief_button_notice a  { color: #575757; text-decoration: none; }
+.button_pay:hover, .button_notice:hover, .brief_button_pay:hover, .brief_button_notice:hover  { border: 1px solid #5c90d0; color: #5c90d0; }
+.button_pay:active, .button_notice:active, .brief_button_pay:active, .brief_button_notice:active { border: 1px solid #5c90d0; background: #f2ffe8; font-weight: bold; color: #575757; }
+
+/* 메인 알림함 결재함 아이콘 위치 설정 */
+#notice .ui-button-text-icon-primary .ui-button-icon-primary, #notice .ui-button-text-icons .ui-button-icon-primary, #notice .ui-button-icons-only .ui-button-icon-primary { left: .6em; }
+
+/* 메인 알림함 결재함 텍스트 위치 설정 */
+.button_notice_on .ui-button-text { padding:.45em 0px 0px 25px; }
+
+/* 팝업 버튼 텍스트 높이 */
+.popup-wrapper-box .ui-button .ui-button-text { line-height:0.6em; }
+
+/* form box 테두리 */
+.fwf-form-corner-all { border:1px solid #dcdcdc; background-color:#e6e6e6; }
+
+/* form box 테두리 안 */
+.fwf-form-corner-all-in { background-color:#f9f9f9; }
+
+/* accordion hearder 스타일 */
+.ui-accordion .ui-accordion-header { border:0px; background:none; }
+
+/* 메시지창에 관한 스타일 */
+.ui-dialog { background: #FFF; }
+.ui-dialog .ui-dialog-titlebar { border:0px; background-color:#f81717; }
+.ui-dialog .ui-widget-header { background: #FFF; }
+.ui-dialog .ui-widget-content { background: #FFF; padding-top:0; padding-bottom:0; }
+
+#center_content_bak .ui-widget-content:first-child { border: 0px solid #dfd9c3; background-color:#FFF; background:#FFF; }
+
+/*  그리드 스타일 */
+
+/*.ui-jqgrid th[colSpan] {background:#F00 !important;} */
+.ui-jqgrid .ui-state-default, .ui-jqgrid .ui-widget-content .ui-state-default, .ui-jqgrid .ui-widget-header .ui-state-default 
+{ background: url(../images/fwf_grid_bg.png) 0% 50% repeat-x; font-weight: bold; color: #333; }
+	/* head tr에 마우스 오버시 */
+.ui-jqgrid .ui-jqgrid-hdiv .ui-state-hover { border: 1px solid #b0b0b0; background: #cee5f8 !important; color: #2d86d8; }
+	/* body tr에 마우스 오버시 */
+.ui-jqgrid-btable tr:hover { border: 1px solid #5e99cf !important; background: #cee5f8 !important; color: #2d86d8; font-weight: normal; }
+	/* tr에 포커스시 */
+/* .ui-jqgrid-btable .ui-state-highlight { border: 1px solid #5e99cf !important; background: #cee5f8 !important; color: #2d86d8; font-weight: normal; } */
+	/* tr에 마우스 오버시-삭제 */
+#UT1010010 .ui-jqgrid-btable tr:hover, #UT2010010 .ui-jqgrid-btable tr:hover , #UT2020010 .ui-jqgrid-btable tr:hover , 
+#UT2030010 .ui-jqgrid-btable tr:hover, #UT3010010 .ui-jqgrid-btable tr:hover , #UT3020010 .ui-jqgrid-btable tr:hover , 
+#UT3030010 .ui-jqgrid-btable tr:hover, #UT4010010 .ui-jqgrid-btable tr:hover , #UT4020010 .ui-jqgrid-btable tr:hover ,
+#UT5010010 .ui-jqgrid-btable tr:hover, #UT5020010 .ui-jqgrid-btable tr:hover , #UT5030010 .ui-jqgrid-btable tr:hover
+{ border: 0px solid #b0b0b0 !important; background: #cee5f8 !important; font-weight: normal !important; color: #312e25; }
+	/* tr에 포커스시-삭제 */
+#UT1010010 .ui-jqgrid-btable .ui-state-highlight, #UT2010010 .ui-jqgrid-btable .ui-state-highlight, #UT2020010 .ui-jqgrid-btable .ui-state-highlight, 
+#UT3030010 .ui-jqgrid-btable .ui-state-highlight, #UT4010010 .ui-jqgrid-btable .ui-state-highlight, #UT4020010 .ui-jqgrid-btable .ui-state-highlight,
+#UT5010010 .ui-jqgrid-btable .ui-state-highlight, #UT5020010 .ui-jqgrid-btable .ui-state-highlight, #UT5030010 .ui-jqgrid-btable .ui-state-highlight
+{ border: 0px solid #b0b0b0 !important; background: #cee5f8 !important; font-weight: normal !important; color: #312e25; }
+
+.ui-jqgrid .ui-state-default, .ui-jqgrid .ui-widget-header .ui-state-default { border: 1px solid #8d8d8d; }
+.ui-jqgrid .ui-state-default.jqgrid-rownum { color:#8d8d8d; background-color:#333333; }
+.ui-jqgrid .ui-jqgrid-pager { background-color:#FFF !important; }
+.ui-jqgrid .ui-jqgrid-hdiv .ui-state-default .ui-icon { background-image: url(../images/ui-icons_666466_256x240.png); }
+.ui-jqgrid .ui-jqgrid-view { border-top: 0px solid #8d8d8d; }
+.ui-paging-info { font-weight:bold !important; }
+.ui-state-default.ui-jqgrid-pager.ui-corner-bottom .ui-pager-control { background-color:#badaee !important; } /* 총건수 나오는 부분 */
+.ui-state-default .ui-th-column-hearder { color:#333; }
+	/* 그리드용 스크롤 */
+.ui-jqgrid .ui-jqgrid-bdiv { overflow-y:scroll !important; scrollbar-face-color:#FFF; scrollbar-highlight-color:#8d8d8d; scrollbar-shadow-color:#8d8d8d; scrollbar-3dlight-color:#FFF; scrollbar-arrow-color:#5c90d0; scrollbar-track-color:#e6e6e6; scrollbar-darkshadow-color:#FFF; }
+	/* 그리드 격줄로 색 표현*/
+.ui-jqgrid-btable tr:nth-child(odd) { background-color:#f0f0f0; }
+	/* 그리드 격줄로 색 표현-삭제*/
+#UT1010010 .ui-jqgrid-btable tr td, #UT2010010 .ui-jqgrid-btable tr td, 
+#UT1020010 .ui-jqgrid-btable tr td, #UT2020010 .ui-jqgrid-btable tr td,
+#UT1030010 .ui-jqgrid-btable tr td, #UT2030010 .ui-jqgrid-btable tr td,
+#UT4010010 .ui-jqgrid-btable tr td, #UT3010010 .ui-jqgrid-btable tr td,
+#UT3020010 .ui-jqgrid-btable tr td, #UT3030010 .ui-jqgrid-btable tr td,
+#UT5010010 .ui-jqgrid-btable tr td, #UT5020010 .ui-jqgrid-btable tr td
+{ background-color: #fff; }
+	/* 소계 background 넣기 */
+#UT1010010 .s_total, #UT1020010 .s_total, #UT1030010 .s_total,
+#UT2010010 .s_total, #UT2020010 .s_total, #UT2030010 .s_total, 
+#UT3010010 .s_total, #UT3020010 .s_total, #UT3030010 .s_total,
+#UT4010010 .s_total, #UT5010010 .s_total, #UT5020010 .s_total 
+{ background: #fdfbe0 !important; border-bottom: 1px solid #ec9e52 !important; border-right: 1px solid #ec9e52 !important; }
+	/* 소계의 소계 background 넣기 */
+#UT1010010 .s2_total, #UT1020010 .s2_total, #UT1030010 .s2_total,
+#UT2010010 .s2_total, #UT2020010 .s2_total, #UT2030010 .s2_total, 
+#UT3010010 .s2_total, #UT3020010 .s2_total, #UT3030010 .s2_total,
+#UT4010010 .s2_total, #UT5010010 .s2_total, #UT5020010 .s2_total 
+{ background: #cbfacb !important; border-bottom: 1px solid #ec9e52 !important; border-right: 1px solid #ec9e52 !important; }
+
+/* grid 첫번째 헤드 스크롤 감추기*/
+.ui-jqgrid .frozen-bdiv.ui-jqgrid-bdiv { overflow-y:hidden !important; }
+	/* 그리드 안의 데이터가 없을때 뜨는 디자인 */
+.ui-jqgrid .emptyrows { color:#333; background:none; border:none; }
+	/* 그리드 rownumber (11.27 이병직) */
+.ui-jqgrid td.ui-state-default.jqgrid-rownum, .popup_grid_area .ui-jqgrid td.ui-state-default.jqgrid-rownum  { background: none; }
+	/* 그리드 상태아이콘 (11.27 이병직) */
+.ui-jqgrid td.grid_icon_state span:first-child { margin-left: 6px; }
+	/* 그리드 상태아이콘 정렬 */
+.ui-jqgrid tr.jqgrow span { display:inline-block; left:7px; top:0px; }
+.ui-jqgrid tr.jqgrow span.ui-icon { display:inline-block; left:7px; margin-top:4px; }
+.ui-jqgrid tr.jqgrow span.ui-icon.fwf-icon-up3, .ui-jqgrid tr.jqgrow span.ui-icon.fwf-icon-down3 { margin-top:0px; }
+
+	/* 그리드 하단버튼 스타일 */
+.ui-jqgrid .ui-pg-button:hover { border:0px solid #c3c3c3 !important; background:none; }
+.ui-pg-button:hover { }
+.ui-pg-button:active { }
+
+/* 자금집금  */
+#UF2010050grid_indiv_prgr_st_nm { height:50px !important; }
+#UF2020050grid_indiv_prgr_st_nm { height:50px !important; }
+
+/* popup 그리드 스타일 */
+.popup_grid_area.ui-jqgrid .ui-state-default, .popup_grid_area .ui-jqgrid .ui-widget-content .ui-state-default, .popup_grid_area .ui-jqgrid .ui-widget-header .ui-state-default 
+{ background: url(../images/fwf_grid_bg.png) 0% 50% repeat-x; font-weight: bold; color: #333; }
+.popup_grid_area .ui-jqgrid .ui-state-default a, .popup_grid_area .ui-jqgrid .ui-state-default a:link, .popup_grid_area .ui-jqgrid .ui-state-default a:visited { color: #FFF; text-decoration: none; }
+.popup_grid_area .ui-jqgrid .ui-state-hover, .popup_grid_area .ui-jqgrid .ui-widget-content .ui-state-hover, .popup_grid_area .ui-jqgrid .ui-widget-header .ui-state-hover, .popup_grid_area .ui-jqgrid .ui-state-focus, .popup_grid_area .ui-jqgrid .ui-widget-content .ui-state-focus, .popup_grid_area .ui-jqgrid.ui-widget-header .ui-state-focus { border: 1px solid #8d8d8d; background: #9fc5e4; font-weight: bold; color: #FFF; }
+.popup_grid_area .ui-jqgrid .ui-state-hover a, .popup_grid_area .ui-jqgrid .ui-state-hover a:hover, .popup_grid_area .ui-jqgrid .ui-state-hover a:link, .popup_grid_area .ui-jqgrid .ui-state-hover a:visited { color: #FFF; text-decoration: none; }
+.popup_grid_area .ui-jqgrid .ui-state-active, .popup_grid_area .ui-widget-content .ui-state-active, .popup_grid_area .ui-jqgrid .ui-widget-header .ui-state-active { border: 1px solid #c3c3c3; background: #f2ffeb url(../images/ui-bg_glass_55_fcf0ba_1x400.png) 50% 50% repeat-x; font-weight: bold; color: #4bad2a; }
+.popup_grid_area .ui-jqgrid .ui-state-active a, .popup_grid_area .ui-jqgrid .ui-state-active a:link, .popup_grid_area .ui-jqgrid .ui-state-active a:visited { color: #4bad2a; text-decoration: none; }
+.popup_grid_area .ui-jqgrid .ui-state-default.jqgrid-rownum { color:#8d8d8d; background-color:#333333; }
+.popup_grid_area .ui-jqgrid .ui-jqgrid-pager { background-color:#FFF !important; }
+.popup_grid_area .ui-jqgrid .ui-jqgrid-hdiv .ui-state-default .ui-icon { background-image: url(../images/ui-icons_666466_256x240.png); }
+.popup_grid_area .ui-jqgrid .ui-jqgrid-view { border-top: 1px solid #8d8d8d; }
+.popup_grid_area .ui-paging-info { font-weight:bold !important; }
+.popup_grid_area .ui-state-default.ui-jqgrid-pager.ui-corner-bottom .ui-pager-control { background-color:#cee5f8 !important; }
+.popup_grid_area .ui-state-default .ui-th-column-hearder { color:#333; }
+.popup_grid_area .ui-jqgrid .ui-jqgrid-bdiv { overflow-y:scroll !important; scrollbar-face-color:#FFF; scrollbar-highlight-color:#8d8d8d; scrollbar-shadow-color:#8d8d8d; scrollbar-3dlight-color:#FFF; scrollbar-arrow-color:#5c90d0; scrollbar-track-color:#e6e6e6; scrollbar-darkshadow-color:#FFF; }
+.popup_grid_area .ui-jqgrid { border: 1px solid #8d8d8d; }
+
+/* popup 그리드 격줄로 색 표현*/
+.popup_grid_area .ui-jqgrid-btable tr:nth-child(odd) { background-color:#ececec !important; }
+
+/* 버튼스타일 */
+
+	/* 전체페이지 버튼 스타일 */
+.sub_btn .ui-state-default
+{ border-top: 1px solid #012c9d; border-right: 1px solid #235fc4; border-bottom: 1px solid #235fc4; border-left: 1px solid #012c9d; background: #4bad2a url(../images/btn_bg_blue.png) 60% 70% repeat-x !important; font-weight: bold; color: #FFF !important; }
+.sub_btn .ui-state-hover
+{ border: 1px solid #012c9d; background: #235fc4 !important; font-weight: bold; color: #FFF !important; }
+.sub_btn .ui-state-active
+{ border: 1px solid #c3c3c3; background: #FFF !important; font-weight: bold; color: #84bcec !important; }
+
+	/* search 버튼 스타일 */
+.search_btn .ui-button.ui-state-default, .search_btn .ui-button.ui-state-default, .search_3line_btn .ui-button.ui-state-default, .ui-dialog-buttonset .ui-button.ui-state-default, .brief_title .ui-button.ui-state-default { border: 1px solid #5c90d0; background: #4bad2a url(../images/fwf_search_btn_bg.jpg) 60% 70% repeat-x; font-weight: bold; color: #333333; }
+.search_btn .ui-button:hover, .search_btn .ui-button:hover, .search_3line_btn .ui-button:hover, .ui-dialog-buttonset .ui-button:hover .brief_sub_search .ui-button:hover
+{ border: 1px solid #c3c3c3; background: #FFF; font-weight: bold; color: #5c90d0; }
+.search_btn .ui-button:active, .search_btn .ui-button:active, .search_3line_btn .ui-button:active, .ui-dialog-buttonset .ui-button:active, .brief_sub_search .ui-button:active
+{ border: 1px solid #c3c3c3; background: #FFF; font-weight: bold; color: #5c90d0; }
+
+	/* search 조건 안에 버튼 스타일 */
+.search_condition .ui-button.ui-state-default
+{ border: 1px solid #8d8d8d; background: #4bad2a url(../images/fwf_search_btn_bg.jpg) 60% 70% repeat-x; font-weight: bold; color: #333333; }
+.search_condition .ui-button:hover
+{ border: 1px solid #8d8d8d; background: #FFF; font-weight: bold; color: #5c90d0; }
+.search_condition .ui-button:active
+{ border: 1px solid #8d8d8d; background: #FFF; font-weight: bold; color: #5c90d0; }
+
+	/* grid에 들어가는 버튼 스타일 */
+.grid_btn .ui-button.ui-state-default
+{ border-top: 1px solid #339112; border-right: 1px solid #34a71e; border-bottom: 1px solid #34a71e; border-left: 1px solid #339112; background: #FFF url(../images/btn_bg_green.png) 0% 50% repeat-x; font-weight: bold; color: #FFF; }
+.grid_btn .ui-button:hover
+{ border: 1px solid #34a71e; background: #FFF; font-weight: bold; color: #34a71e; }
+.grid_btn .ui-button:active
+{ border: 1px solid #c3c3c3; background: #FFF; font-weight: bold; color: #34a71e; }
+
+	/* grid 안에 들어가는 버튼 스타일 */
+.ui-row-ltr td .button_gridin
+{ border: 1px solid #8d8d8d; background: #4bad2a url(../images/fwf_search_btn_bg.jpg) 60% 70% repeat-x; font-weight: bold; color: #333333; font-size:11px; height:19px; padding:2px 2px 0px 2px; }
+.ui-row-ltr td .button_gridin:hover
+{ border: 1px solid #8d8d8d; background: #FFF; font-weight: bold; color: #5c90d0; }
+.ui-row-ltr td .button_gridin:active 
+{ border: 1px solid #8d8d8d; background: #FFF; font-weight: bold; color: #5c90d0; }
+
+	/* form 안에 들어가는 버튼 스타일 */
+.sub_form .ui-button.ui-state-default
+{ border: 1px solid #5c90d0; background: #4bad2a url(../images/fwf_search_btn_bg.jpg) 60% 70% repeat-x; font-weight: bold; color: #333333; }
+.sub_form .ui-button:hover
+{ border: 1px solid #c3c3c3; background: #FFF; font-weight: bold; color: #5c90d0; }
+.sub_form .ui-button:active
+{ border: 1px solid #c3c3c3; background: #FFF; font-weight: bold; color: #5c90d0; }
+
+/* jqgrid에 버튼 스타일(높이 & 넓이) */
+.EditButton .fm-button { display: inline-block; margin:0 4px 0 0; padding-bottom: .1em; text-decoration:none !important; cursor:pointer; position: relative; text-align: center; zoom: 1; }
+
+.ui-jqdialog-titlebar.ui-widget-header { background: #url(../images/fwf_grid_bg.png) 0% 50% repeat-x; border: 1px solid #93ce93; }
+
+/* 달력 스타일 */
+.ui-datepicker-div { border:5px #3C9 solid; }
+
+/* Component containers */
+.ui-datepicker .ui-widget { font-family: Lucida Grande,Lucida Sans,Arial,sans-serif; font-size: 1.1em; }
+.ui-datepicker .ui-widget .ui-widget { font-size: 1em; }
+.ui-datepicker .ui-widget input, .ui-datepicker .ui-widget select, .ui-datepicker .ui-widget textarea, .ui-datepicker .ui-widget button { font-size: 1em; }
+.ui-datepicker .ui-widget-content {/*border-top: 1px solid #f81717;*/background: #FFF; color: #333333; }
+.ui-datepicker .ui-datepicker .ui-widget-content a { color: #333333; }
+.ui-datepicker .ui-widget-header { border: 1px solid #5c90d0; color: #FFF !important; font-weight: bold; }
+.ui-datepicker .ui-widget-header a { color: #FFF; }
+.ui-datepicker select.ui-datepicker-month { width: 50px; margin-left:5px; }  /* 월 select 넓이*/
+.ui-datepicker select.ui-datepicker-year { width: 55px; }  /* 년 select 넓이*/
+
+/* 월 단위 달력*/
+.mtz-monthpicker-month:hover { border: 1px solid #71a8de !important; background: #fff !important; font-weight: bold !important; color: #0065b3; }
+.ui-datepicker { border:1px #6e9d4b solid; border-radius:0!important;}
+.ui-datepicker .mtz-monthpicker-month { border: 1px solid #ff0000; height:18px; padding-top:5px; }
+.ui-datepicker .mtz-monthpicker-month div { padding:2px; border: 1px solid #71a8de !important; font-weight: bold; color: #0065b3; }
+.ui-datepicker .mtz-monthpicker td { border: 0px solid #FFF !important; background: #FFF; cursor:pointer !important; }
+
+/* 달력 일요일 색상 (11.29) 이병직 */
+.ui-datepicker-calendar tr td.ui-datepicker-week-end a { display: block; background: #ffd9d9; border:1px #ffb3b3 solid; color:#333; }
+.ui-datepicker-calendar tr td.ui-datepicker-week-end a:visited { color:#f81717; }
+.ui-datepicker-calendar th.ui-datepicker-week-end { color: #f81717; }
+
+/* Interaction states 달력용 스타일*/
+.ui-datepicker.ui-widget .ui-state-default, .ui-datepicker.ui-widget .ui-widget-content .ui-state-default, .ui-datepicker.ui-widget .ui-widget-header .ui-state-default { border: 1px solid #c3e2e7; background: #e6fedd; font-weight: bold; color: #0065b3; }
+.ui-datepicker.ui-widget .ui-state-default a, .ui-datepicker.ui-widget .ui-state-default a:link, .ui-datepicker.ui-widget .ui-state-default a:visited { color: #0065b3; text-decoration: none; }
+.ui-datepicker.ui-widget .ui-state-hover, .ui-datepicker.ui-widget .ui-widget-content .ui-state-hover, .ui-datepicker.ui-widget .ui-widget-header .ui-state-hover, .ui-datepicker.ui-widget .ui-state-focus { border: 1px solid #71a8de; background: #c3e2e7; font-weight: bold; color: #0065b3; }
+.ui-datepicker.ui-widget .ui-state-hover a, .ui-datepicker.ui-widget .ui-state-hover a:hover, .ui-datepicker.ui-widget .ui-state-hover a:link, .ui-datepicker.ui-widget .ui-state-hover a:visited { color: #0065b3; text-decoration: none; }
+.ui-datepicker.ui-widget .ui-state-active, .ui-datepicker.ui-widget .ui-widget-content .ui-state-active, .ui-datepicker.ui-widget .ui-widget-header .ui-state-active { border: 1px solid #71a8de; background: #FFF; font-weight: bold; color: #f06519; }
+.ui-datepicker.ui-widget .ui-state-active a, .ui-datepicker.ui-widget .ui-state-active a:link, .ui-datepicker.ui-widget .ui-state-active a:visited { color: #f06519; text-decoration: none; }
+.ui-datepicker.ui-widget { background-color:#FFF !important; }
+
+/* Interaction Cues */
+.ui-datepicker .ui-state-highlight, .ui-datepicker .ui-widget-content .ui-state-highlight, .ui-datepicker .ui-widget-header .ui-state-highlight  { border: 1px solid #fad42e; background: #fbec88; color: #575757; }
+.ui-datepicker .ui-state-highlight a, .ui-datepicker .ui-widget-content .ui-state-highlight a,.ui-datepicker .ui-widget-header .ui-state-highlight a { color: #575757; }
+.ui-datepicker .ui-state-error, .ui-datepicker .ui-widget-content .ui-state-error, .ui-datepicker .ui-widget-header .ui-state-error { border: 1px solid #f81717; background: #fef1ec; color: #f81717; }
+.ui-datepicker .ui-state-error a, .ui-datepicker .ui-widget-content .ui-state-error a, .ui-datepicker .ui-widget-header .ui-state-error a { color: #f81717; }
+.ui-datepicker .ui-state-error-text, .ui-datepicker  .ui-widget-content .ui-state-error-text, .ui-datepicker .ui-widget-header .ui-state-error-text { color: #f81717; }
+.ui-datepicker .ui-priority-primary, .ui-datepicker .ui-widget-content .ui-priority-primary, .ui-datepicker .ui-widget-header .ui-priority-primary { font-weight: bold; }
+.ui-datepicker .ui-priority-secondary, .ui-datepicker .ui-widget-content .ui-priority-secondary,  .ui-datepicker .ui-widget-header .ui-priority-secondary { opacity: .7; color: #777777 !important; }
+.ui-datepicker .ui-state-disabled, .ui-datepicker .ui-widget-content .ui-state-disabled, .ui-datepicker .ui-widget-header .ui-state-disabled { opacity: .35; filter:Alpha(Opacity=35); background-image: none; }
+.ui-datepicker .ui-state-disabled .ui-icon { filter:Alpha(Opacity=35); } /* For IE8 - See #6059 */
+
+/* ui-dialog(POPUP 레이어 스타일) */
+.ui-dialog.popup-wrapper-box .ui-dialog-titlebar { padding: 0; position: relative; }
+.ui-dialog.popup-wrapper-box .ui-dialog-title { float: none; margin:0; }
+.ui-dialog.popup-wrapper-box .ui-dialog-content { position: relative; border: 0; padding: 0; background: #FFF; overflow: auto; zoom: 1; height:100%; }
+.ui-dialog.popup-wrapper-box .ui-dialog-titlebar-close { position: absolute; right: .3em; top: 0; width: 19px; margin: 5px 0 0 0; padding: 1px; height: 18px; }
+.ui-dialog.popup-wrapper-box .ui-dialog-titlebar-close span { display: block; margin: 1px; }
+.ui-dialog.popup-wrapper-box .ui-dialog-titlebar-close:hover, .ui-dialog .ui-dialog-titlebar-close:focus, .ui-dialog.ui-draggable .ui-dialog-titlebar-close:hover, .ui-dialog.ui-draggable .ui-dialog-titlebar-close:focus { padding: 0; background:none !important; border: none; padding: 1px; }
+
+/* ui-dialog(PROGRESSBAR 레이어 스타일) */
+.ui-dialog.progressbar-wrapper-box .ui-dialog-titlebar { padding: 0; position: relative; }
+.ui-dialog.progressbar-wrapper-box .ui-dialog-title { float: none; margin:0; }
+.ui-dialog.progressbar-wrapper-box .ui-dialog-content { position: relative; border: 0; padding: 0; background: none; overflow: auto; zoom: 1; height:50%; }
+
+
+/* 에러팝업 엑스(X) 이미지 위치 */
+.error-wrapper-box.ui-dialog .ui-dialog-titlebar-close { top: 18%; }
+.message-wrapper-box.ui-dialog .ui-dialog-titlebar-close { top: 18%; }

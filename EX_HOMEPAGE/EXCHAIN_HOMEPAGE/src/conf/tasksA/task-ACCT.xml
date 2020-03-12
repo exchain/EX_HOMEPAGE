@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<tasks>
+    <task tid="ACCT00010"   class="com.finger.exchain.tasks.acctcheck.acctCheck"    action="fncACCT00010"       desc="예금주명조회" />
+</tasks>

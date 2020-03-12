@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<tasksGroup>
+    <tasks file="conf/tasksA/task-SADM.xml" desc="FWF-시스템관리" />
+    <tasks file="conf/tasksA/task-ACCT.xml" desc="DEMO-계좌관련업무" />
+</tasksGroup>

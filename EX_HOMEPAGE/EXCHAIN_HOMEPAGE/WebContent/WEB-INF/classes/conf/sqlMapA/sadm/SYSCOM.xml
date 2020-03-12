@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SYSCOM">
+
+    <typeAlias alias="String" type="java.lang.String" />
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+    <!-- 조회: 오늘날짜 - YYYYMMDDHH24MISSFF / 20자리 -->
+    <select id="Now_Datetime" resultClass="java.lang.String">
+        SELECT
+                TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDHH24MISSFF') AS  NOW_DATETIME    --오늘날짜
+        FROM
+                DUAL
+    </select>
+
+    <!-- 조회: 시스템정보조회 -->
+    <select id="System_Info" parameterClass="String" resultClass="LinkedHashMap">
+        SELECT              
+                SYS_MGT_NO               -- 시스템관리번호
+            ,   SYS_MGT_NM               -- 시스템관리명
+            ,   SYS_MGT_NM_KEY           -- 시스템 관리 명 KEY
+            ,   POP_ALM_YN               -- 팝업알림여부
+            ,   POP_ALM_PERD             -- 팝업알림주기
+            ,   SMS_USE_YN               -- SMS 사용 여부
+            ,   SMS_SND_STR_DTM          -- SMS발송시작시간
+            ,   SMS_SND_END_DTM          -- SMS 발송 종료 시간
+            ,   SMS_SND_TEL_NO           -- SMS 발송 전화번호
+            ,   PWD_ERR_PASS_CNT         -- 비밀번호연속오류허용횟수
+            ,   PWD_ERR_LOCK_DTM         -- 비밀번호연속오류잠금시간
+            ,   PWD_UPD_PERD             -- 비밀번호변경주기
+            ,   RECVR_NM_CASH_DAY        -- 수취인성명캐시유효일수
+            ,   CDTM_BAL_PASS_DTM        -- 실시간잔액유휴시간
+            ,   RE_TRNS_CHK_YN           -- 중복이체체크여부
+            ,   ERP_LNK_YN               -- ERP연계여부
+            ,   NOTI_MTTR_POP_DTM        -- 주의사항팝업시간
+            ,   GRID_PAGE_ROW_CNT        -- GRID페이징행건수
+            ,   KRW_SUP_MAX_CNT          -- 원화지급최대건수
+            ,   FOC_SUP_MAX_CNT          -- 외화지급최대건수
+            ,   OBANK_SCRP_SUP_MAX_CNT   -- 타행스크래핑지급최대건수
+            ,   OBANK_SCRP_REPT_EXEC_DAY -- 타행스크래핑중복실행일수
+            ,   OBANK_TRNS_FST_INQ_DAY   -- 타행거래최초조회일수
+            ,   MLANG_USE_YN             -- 다국어 사용 여부
+            ,   MAIN_BANK_CD             -- 주거래 은행 코드
+            ,   REP_DMST_CRPN_SEQ_NO     -- 대표 국내 법인 일련번호
+            ,   REP_ABRD_CRPN_SEQ_NO     -- 대표 해외 법인 일련번호
+            ,   ERP_LNK_DIV	             -- ERP종류구분
+        FROM    TCMS_CF_SYS
+        WHERE   SYS_MGT_NO      =   #sys_mgt_no#
+    </select>
+
+    <!-- 조회: 펌뱅킹정보조회 -->
+    <select id="Firm_Info" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT  ENP_NO					-- 업체번호
+            ,   VAN_NO					-- VAN 번호
+            ,   DCMT_CD  AS CLASS_CD	-- 식별코드
+            ,   TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDHH24MISS') AS  NOW_DATETIME    --오늘날짜
+			,   SYS_MGT_NO				-- 시스템관리번호
+			,	BANK_CD					--  은행코드
+          FROM  TCMS_CF_FIRM_DTL
+         WHERE  BIZ_SEQ_NO  = (
+                                  SELECT D.REP_BIZ_SEQ_NO
+                                    FROM TCMS_CF_DMST_BIZR A
+                                       , TCMS_CF_DMST_CRPN B
+                                       , TCMS_CF_SYS       C
+                                       , TCMS_CF_DMST_CRPN D
+                                   WHERE A.CRPN_SEQ_NO          = B.CRPN_SEQ_NO
+                                     AND B.SYS_MGT_NO           = C.SYS_MGT_NO
+                                     AND C.REP_DMST_CRPN_SEQ_NO = D.CRPN_SEQ_NO
+                                     AND A.BIZ_SEQ_NO           = #biz_seq_no#
+                              ) 
+           AND  FBK_DIV_CD  = #fbk_div_cd#
+           AND  SRV_DIV_CD  = #srv_div_cd#
+           AND  BANK_CD     = #bank_cd#
+           AND  USE_YN      = 'Y'
+    </select>
+
+
+    <!-- 조회: 전문번호(채번) -->
+    <select id="select_MsgNo" parameterClass="HashMap" resultClass="String">
+        SELECT
+                    Nvl(Max(MSG_NO),0) + 1  AS  MSG_NO
+        FROM
+                    TCMS_CF_MSG_NO
+        WHERE
+                    SYS_MGT_NO  =   #sys_mgt_no#
+        AND         TRNS_DT     =   #trns_dt#
+    </select>
+    <!-- 등록: 전문번호(채번) 신규 -->
+    <insert id="insert_MsgNo" parameterClass="HashMap">
+        INSERT
+        INTO        TCMS_CF_MSG_NO
+                (   SYS_MGT_NO  , MSG_DIV , TRNS_DT  , MSG_NO    )
+        VALUES
+                (   #sys_mgt_no#, #msg_div#, #trns_dt#, #msg_no#  )
+    </insert>
+    <!-- 수정: 전문번호(채번) 갱신 -->
+    <update id="update_MsgNo" parameterClass="HashMap">
+        UPDATE
+                    TCMS_CF_MSG_NO
+        SET
+                    MSG_NO      =   #msg_no#
+        WHERE
+                    SYS_MGT_NO  =   #sys_mgt_no#
+        AND         TRNS_DT     =   #trns_dt#
+    </update>
+
+    <!-- 조회: 오류코드 조회 -->
+    <select id="errCodeMsg" parameterClass="HashMap" resultClass="String">
+        SELECT   
+                ERR_CONTS
+		FROM    TCMS_CF_ERR_CODE
+		WHERE   INST_DIV = #inst_div#
+		AND     BANK_CD  = #bank_cd#
+		AND     ERR_CD   = #err_cd#
+    </select>
+</sqlMap>

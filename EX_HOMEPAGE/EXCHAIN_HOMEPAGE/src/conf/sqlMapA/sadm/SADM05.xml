@@ -1,0 +1,1362 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADM05">
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+    <!-- 조회: SelectBox 개발자정의용(모음) / [로그인 무관] -->
+    <!--       - SelectBox 생성 시 아래 파라미터 필요
+                 * GROUP_NAME : sboxGroup
+                 * SYS_MGT_NO : sys_mgt_no  -->
+    <select id="SADM05000" parameterClass="HashMap" resultClass="LinkedHashMap">
+    	SELECT  *
+    	FROM	(
+		        SELECT
+		                    'zGroupName'            AS  GROUP_NAME
+		                ,   'zXXX9999'              AS  SYS_MGT_NO
+		                ,   'zSelectBoxValue'       AS  SBOX_CODE
+		                ,   'zSelectBoxText'        AS  SBOX_NM_KEYS
+		                ,   'zSelectBoxTextAdd'     AS  SBOX_NM_EXPR
+		        FROM        DUAL
+		        UNION   ALL     ---------------------------------
+		        /*  TCMS_CF_NOTI_TGT - 알림대상업무정보        */
+		        SELECT      'AlarmNotice'           AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ALM_TYPE_CD             AS  SBOX_CODE
+		                ,   (
+		                        SELECT COM_CD_NM_KEY
+		                          FROM TCMS_CF_COM_CODE
+		                         WHERE GRP_CD = 'COM101'
+		                           AND COM_CD = ALM_TYPE_CD
+		                    )                       AS  ALM_TYPE_NM
+		                ,   '@1'                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_NOTI_TGT
+		        WHERE       ALM_USE_YN          =   'Y'
+		        UNION   ALL
+		        ---------------------------------------------------------------------------------------start★ 계좌그룹정보(원화/외화/해외/타행) !!!
+		        /*  TCMS_CF_DMST_ACNT_GRP - 원화계좌그룹정보    */
+		        SELECT      'DmstAcntGroupK'        AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_DMST_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND         KRW_FOC_DIV         =   'K'
+		        UNION   ALL
+		        /*  TCMS_CF_DMST_ACNT_GRP - 외화계좌그룹정보    */
+		        SELECT      'DmstAcntGroupF'        AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_DMST_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND         KRW_FOC_DIV         =   'F'
+		        UNION   ALL
+		        /*  TCMS_CF_OVRS_ACNT_GRP - 해외계좌그룹정보    */
+		        SELECT      'OvrsAcntGroup'         AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_OVRS_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        UNION	ALL
+		        /* TCMS_CF_SC_ACNT_GRP	  - 타행원화그룹정보	*/
+		        SELECT		'OBAcntGroupK'
+              			,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                   AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_SC_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND			KRW_FOC_DIV			= 	'K'
+		        UNION	ALL
+		        /* TCMS_CF_SC_ACNT_GRP	  - 타행외화그룹정보	*/
+		        SELECT		'OBAcntGroupF'
+              			,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                   AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_SC_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND			KRW_FOC_DIV			= 	'F'
+		        UNION ALL
+		        /*  TCMS_CF_CARD_GRP - 카드그룹정보            */
+		        SELECT      'CardGroup'             AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   CARD_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ''                      AS  SBOX_NM_KEYS
+		                ,   CARD_GRP_NM || ' '      AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_CARD_GRP
+		        WHERE       USE_YN              =   'Y'
+		        UNION ALL
+		        /*  국내 원화 계좌 그룹정보 전체(원화/타행)    */
+		        SELECT      'DmstAllAcntGroupK'        AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_DMST_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND         KRW_FOC_DIV         =   'K'
+		        UNION   ALL
+		        SELECT      'DmstAllAcntGroupK'        AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_SC_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND         KRW_FOC_DIV         =   'K'
+		        UNION   ALL
+		        /*  국내 외화 계좌 그룹정보 전체(외화/타행)    */
+		        SELECT      'DmstAllAcntGroupF'        AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_DMST_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND         KRW_FOC_DIV         =   'F'
+		        UNION   ALL
+		        SELECT      'DmstAllAcntGroupF'        AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   ACNT_GRP_SEQ_NO         AS  SBOX_CODE
+		                ,   ACNT_GRP_NM_KEY         AS  SBOX_NM_KEYS
+		                ,   '@1 '                    AS  SBOX_NM_EXPR
+		        FROM        TCMS_CF_SC_ACNT_GRP
+		        WHERE       USE_YN              =   'Y'
+		        AND         KRW_FOC_DIV         =   'F'
+		        ---------------------------------------------------------------------------------------end ★ 계좌그룹정보(원화/외화/해외/타행) !!!
+		        UNION   ALL
+		        /*  TCMS_AP_LINE - 결재선목록            */
+		        SELECT      'ApLine'                AS  GROUP_NAME
+		                ,   SYS_MGT_NO              AS  SYS_MGT_NO
+		                ,   APPR_LN_SEQ_NO          AS  SBOX_CODE
+		                ,   APPR_LN_NM              AS  SBOX_NM_KEYS
+		                ,   '@1 '                   AS  SBOX_NM_EXPR
+		        FROM        TCMS_AP_LINE
+		        WHERE       USE_YN              =   'Y'
+		        -------------------------------------------------
+				)
+        ORDER BY    GROUP_NAME,  SYS_MGT_NO,  SBOX_CODE
+    </select>
+
+    <!-- 조회: SelectBox 개발자정의(모음) / [로그인 후/세션] -->
+    <!--       - SelectBox 생성 시 아래 파라미터 필요
+                 * GROUP_NAME : sboxGroup
+                 * GROUP_DATA : groupData | `ALL`:전체내역 내릴때 -->
+    <select id="SADM05050" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT
+                    GROUP_NAME
+                ,   GROUP_DATA
+                ,   SBOX_CODE
+                ,   SBOX_NM_KEYS
+                ,   SBOX_NM_EXPR
+                ,   SORT_KEYS
+        FROM
+        (
+	    	SELECT  *
+	    	FROM	(
+		            SELECT
+		                        'zGroupName'            AS  GROUP_NAME
+		                    ,   'zGroupData'            AS  GROUP_DATA
+		                    ,   'zSelectBoxValue'       AS  SBOX_CODE
+		                    ,   'zSelectBoxTextKeys'    AS  SBOX_NM_KEYS
+		                    ,   'zSelectBoxTextExpr'    AS  SBOX_NM_EXPR
+		                    ,   'zSelectBoxSortKeys'    As  SORT_KEYS
+		            FROM        DUAL
+		            UNION   ALL
+		            ---------------------------------------------------------------------------------------start★ 그룹별 계좌정보(원화/외화/해외/타행) !!!
+		            /*  로그인사용자의 원화계좌그룹내 계좌권한이 있는 계좌번호 */
+		            SELECT      distinct
+		                        'DmstAcntByGroupK'      AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO           
+		                    							AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION ALL
+		            SELECT      'DmstAcntByGroupK'      AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            /*  로그인사용자의 외화계좌그룹내 계좌권한이 있는 계좌번호 */
+		            UNION   ALL
+		            SELECT      distinct
+		                        'DmstAcntByGroupF'      AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION   ALL
+		            SELECT      'DmstAcntByGroupF'      AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            /*  로그인사용자의 해외계좌그룹내 계좌권한이 있는 계좌번호 */
+		            UNION   ALL
+		            SELECT      distinct
+		                        'OvrsAcntByGroup'       AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   C.ACNT_USAG_KEY         AS  SBOX_NM_KEYS
+		                    ,   C.BANK_NM || ' (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@1) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_NM || C.SMARK_ACNT_NO || C.CUR_CD
+		                              					AS  SORT_KEYS
+		            FROM        TCMS_CF_OVRS_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_OVRS_ACNT_GRP       B
+		                    ,   TCMS_CF_OVRS_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_OVRS_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION   ALL
+		            SELECT      'OvrsAcntByGroup'       AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   C.ACNT_USAG_KEY         AS  SBOX_NM_KEYS
+		                    ,   C.BANK_NM || ' (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@1) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_NM || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_OVRS_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_OVRS_ACNT_GRP       B
+		                    ,   TCMS_CF_OVRS_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_OVRS_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )	                                                
+		            UNION	ALL                                    
+		            /*  로그인사용자의 타행원화계좌그룹내 계좌권한이 있는 계좌번호 */
+		            SELECT      distinct
+		                        'OBAcntByGroupK'      	AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO           
+		                    							AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION ALL
+		            SELECT      'OBAcntByGroupK'      	AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            /*  로그인사용자의 타행외화계좌그룹내 계좌권한이 있는 계좌번호 */
+		            UNION   ALL
+		            SELECT      distinct
+		                        'OBAcntByGroupF'      	AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION   ALL
+		            SELECT      'OBAcntByGroupF'      	AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION   ALL
+		            SELECT      distinct
+		                        'DmstAllAcntByGroupK'      AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO           
+		                    							AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+                    UNION   ALL
+		            SELECT      distinct
+		                        'DmstAllAcntByGroupK'      AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO           
+		                    							AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION ALL
+		            SELECT      'DmstAllAcntByGroupK'      AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION ALL
+		            SELECT      'DmstAllAcntByGroupK'      AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'K'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            /*  로그인사용자의 외화계좌그룹내 계좌권한이 있는 계좌번호 */
+		            UNION   ALL
+		            SELECT      distinct
+		                        'DmstAllAcntByGroupF'      AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION   ALL
+		            SELECT      distinct
+		                        'DmstAllAcntByGroupF'      AS  GROUP_NAME
+		                    ,   'ALL_DATA'              AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION   ALL
+		            SELECT      'DmstAllAcntByGroupF'      AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_DMST_ACNT_GRP       B
+		                    ,   TCMS_CF_DMST_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		            UNION   ALL
+		            SELECT      'DmstAllAcntByGroupF'      AS  GROUP_NAME
+		                    ,   A.ACNT_GRP_SEQ_NO       AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = C.BANK_CD
+		                        ) || '|' || C.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || C.SMARK_ACNT_NO || ' ' || C.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   C.BANK_CD || C.SMARK_ACNT_NO || C.CUR_CD
+		                               					AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT_GRP_DTL   A
+		                    ,   TCMS_CF_SC_ACNT_GRP       B
+		                    ,   TCMS_CF_SC_ACNT           C
+		            WHERE       A.ACNT_GRP_SEQ_NO   =   B.ACNT_GRP_SEQ_NO
+		            AND         A.ACNT_SEQ_NO       =   C.ACNT_SEQ_NO
+		            AND         C.KRW_FOC_DIV       =   'F'
+		            AND         C.NEW_ISS_YN        =   'N'
+		            AND         C.USE_YN            =   'Y'
+		            AND         A.ACNT_SEQ_NO       IN  (
+		                                                    SELECT  ACNT_SEQ_NO
+		                                                    FROM    TCMS_CF_AUTH_SC_ACNT
+		                                                    WHERE   USER_ID =   #user_id#
+		                                                )
+		                                                
+		            ---------------------------------------------------------------------------------------end★ 그룹별 계좌정보(원화/외화/해외/타행) !!!
+		            UNION   ALL
+		            /*  로그인사용자의 계좌권한이 있는 은행코드    */
+		            SELECT      'BankByUser'            AS  GROUP_NAME
+		                    ,   'NONE'                  AS  GROUP_DATA
+		                    ,   A.BANK_CD               AS  SBOX_CODE
+		                    ,   (
+		                            SELECT  COM_CD_NM_KEY
+		                            FROM    TCMS_CF_COM_CODE
+		                            WHERE   GRP_CD = 'COM000'
+		                            AND     COM_CD = A.BANK_CD
+		                        )                       AS  SBOX_NM_KEYS
+		                    ,   '@1 '                   AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD               AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                            SELECT  ACNT_SEQ_NO
+		                                            FROM    TCMS_CF_AUTH_DMST_ACNT
+		                                            WHERE   USER_ID =   #user_id#
+		                                            )
+		            GROUP BY    A.BANK_CD
+		            UNION   ALL     ---------------------------------
+		            /*  로그인사용자의 계좌권한이 있는 계좌번호    */
+		            SELECT      'AcntByUser'            AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_DMST_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.USE_YN            =   'Y'
+		            UNION   ALL     ---------------------------------Yyy***
+		            /*  로그인사용자의 계좌권한이 있는 실시간이체 출금계좌번호(국내)  */
+		            SELECT      'AcntByUserOut'         AS  GROUP_NAME
+		                    ,   'GROUP_DATA'            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT SMARK_CRPN_NM_KEY
+		                              FROM TCMS_CF_DMST_CRPN
+		                             WHERE CRPN_SEQ_NO = B.CRPN_SEQ_NO
+		                        )
+		                        || '|' || B.SMARK_BIZ_NM || '|' ||
+		                        (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        )
+		                        || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '[@1/@2]@3:' || A.SMARK_ACNT_NO || ' (@4) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO           AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		                    ,   TCMS_CF_DMST_BIZR B
+		            WHERE       A.ACNT_SEQ_NO   IN (
+		                                            SELECT ACNT_SEQ_NO
+		                                              FROM TCMS_CF_AUTH_DMST_ACNT
+		                                             WHERE USER_ID  =   #user_id#
+		                                           )
+		            AND         A.BIZ_SEQ_NO    = B.BIZ_SEQ_NO
+		            AND         A.USE_YN        =   'Y'
+		            AND         A.OUT_ACNT_YN   =   'Y'
+		            UNION   ALL     ---------------------------------Yyy***
+		            /*  로그인사용자의 계좌권한이 있는 실시간이체 출금계좌번호(원화)    */
+		            SELECT      'KrwAcntByUserOut'      AS  GROUP_NAME
+		                    ,   'GROUP_DATA'            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT SMARK_CRPN_NM_KEY
+		                              FROM TCMS_CF_DMST_CRPN
+		                             WHERE CRPN_SEQ_NO = B.CRPN_SEQ_NO
+		                        )
+		                        || '|' || B.SMARK_BIZ_NM_KEY || '|' ||
+		                        (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        )
+		                        || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '[@1/@2]@3:' || A.SMARK_ACNT_NO || ' (@4) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO           AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		                    ,   TCMS_CF_DMST_BIZR B
+		            WHERE       A.ACNT_SEQ_NO   IN (
+		                                            SELECT ACNT_SEQ_NO
+		                                              FROM TCMS_CF_AUTH_DMST_ACNT
+		                                             WHERE USER_ID  =   #user_id#
+		                                           )
+		            AND         A.BIZ_SEQ_NO    = B.BIZ_SEQ_NO
+		            AND         A.USE_YN        =   'Y'
+		            AND         A.OUT_ACNT_YN   =   'Y'
+		            AND         A.KRW_FOC_DIV   =   'K'
+		            AND         A.BANK_CD       = (SELECT MAIN_BANK_CD FROM TCMS_CF_SYS WHERE SYS_MGT_NO = #sys_mgt_no#)
+		            UNION   ALL     ---------------------------------Yyy***
+		            /*  로그인사용자의 계좌권한이 있는 실시간이체 출금계좌번호(원화)_개별지급(다건)용    */
+		            SELECT      'KrwAcntByUserOutFor42'      AS  GROUP_NAME
+		                    ,   'GROUP_DATA'            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) AS  SBOX_NM_KEYS
+		                    ,   '[' || (
+		                                   SELECT COM_CD_NM
+		                                     FROM TCMS_CF_COM_CODE
+		                                    WHERE GRP_CD = 'COM000'
+		                                      AND COM_CD = A.BANK_CD
+		                               ) || ']' || A.SMARK_ACNT_NO
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.ACNT_NO               AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		                    ,   TCMS_CF_DMST_BIZR B
+		            WHERE       A.ACNT_SEQ_NO   IN (
+		                                            SELECT ACNT_SEQ_NO
+		                                              FROM TCMS_CF_AUTH_DMST_ACNT
+		                                             WHERE USER_ID  =   #user_id#
+		                                           )
+		            AND         A.BIZ_SEQ_NO    = B.BIZ_SEQ_NO
+		            AND         A.USE_YN        =   'Y'
+		            AND         A.OUT_ACNT_YN   =   'Y'
+		            AND         A.KRW_FOC_DIV   =   'K'
+		            AND         A.BANK_CD       = (SELECT MAIN_BANK_CD FROM TCMS_CF_SYS WHERE SYS_MGT_NO = #sys_mgt_no#)
+		            UNION   ALL     ---------------------------------Yyy***
+		            /*  로그인사용자의 계좌권한이 있는 실시간이체 출금계좌번호(외화)    */
+		            SELECT      'FocAcntByUserOut'      AS  GROUP_NAME
+		                    ,   'GROUP_DATA'            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT SMARK_CRPN_NM_KEY
+		                              FROM TCMS_CF_DMST_CRPN
+		                             WHERE CRPN_SEQ_NO = B.CRPN_SEQ_NO
+		                        )
+		                        || '|' || B.SMARK_BIZ_NM_KEY || '|' ||
+		                        (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        )
+		                        || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '[@1/@2]@3:' || A.SMARK_ACNT_NO || ' ' || A.CUR_CD || ' (@4) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO           AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		                    ,   TCMS_CF_DMST_BIZR B
+		            WHERE       A.ACNT_SEQ_NO   IN (
+		                                            SELECT ACNT_SEQ_NO
+		                                              FROM TCMS_CF_AUTH_DMST_ACNT
+		                                             WHERE USER_ID  =   #user_id#
+		                                           )
+		            AND         A.BIZ_SEQ_NO    = B.BIZ_SEQ_NO
+		            AND         A.USE_YN        =   'Y'
+		            AND         A.OUT_ACNT_YN   =   'Y'
+		            AND         A.KRW_FOC_DIV   =   'F'
+		            AND         A.BANK_CD       = (SELECT MAIN_BANK_CD FROM TCMS_CF_SYS WHERE SYS_MGT_NO = #sys_mgt_no#)
+		            UNION   ALL     ---------------------------------Yyy***
+		            /*  로그인사용자의 계좌권한이 있는 대량이체출금계좌번호    */
+		            SELECT      'AcntByUserBigOut'      AS  GROUP_NAME
+		                    ,   'GROUP_DATA'            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT SMARK_CRPN_NM_KEY
+		                              FROM TCMS_CF_DMST_CRPN
+		                             WHERE CRPN_SEQ_NO = B.CRPN_SEQ_NO
+		                        )
+		                        || '|' || B.SMARK_BIZ_NM_KEY || '|' ||
+		                        (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        )
+		                        || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '[@1/@2]@3:' || A.SMARK_ACNT_NO || ' (@4) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO           AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		                    ,   TCMS_CF_DMST_BIZR B
+		            WHERE       A.ACNT_SEQ_NO   IN (
+		                                            SELECT ACNT_SEQ_NO
+		                                              FROM TCMS_CF_AUTH_DMST_ACNT
+		                                             WHERE USER_ID  =   #user_id#
+		                                           )
+		            AND         A.BIZ_SEQ_NO        = B.BIZ_SEQ_NO
+		            AND         A.USE_YN            =   'Y'
+		            AND         A.BIG_OUT_ACNT_YN   =   'Y'
+		            AND         A.KRW_FOC_DIV       =   'K'
+		            AND         A.BANK_CD       = (SELECT MAIN_BANK_CD FROM TCMS_CF_SYS WHERE SYS_MGT_NO = #sys_mgt_no#)
+		            UNION   ALL
+		            ---------------------------------------------------------------------------------------start★ 법인/사업장별 계좌정보(원화/외화/해외/타행) !!!
+		            /*  로그인사용자의 사업자권한이 있는 원화계좌번호  */
+		            SELECT      'DmstAcntByBizrK'       AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_DMST_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'K'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            UNION   ALL
+		            /*  로그인사용자의 사업자권한이 있는 외화계좌번호  */
+		            SELECT      'DmstAcntByBizrF'       AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY    AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ' ' || A.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO || A.CUR_CD
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_DMST_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'F'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            UNION   ALL
+		            /*  로그인사용자의 사업자권한이 있는 해외계좌번호  */
+		            SELECT      'OvrsAcntByBizr'        AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   A.ACNT_USAG_KEY         AS  SBOX_NM_KEYS
+		                    ,   A.BANK_NM || ' (' || A.SMARK_ACNT_NO || ' ' || A.CUR_CD || ') (@1) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_NM || A.SMARK_ACNT_NO || A.CUR_CD
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_OVRS_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_OVRS_ACNT
+		                                                 WHERE USER_ID              = #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_OVRS_BIZR      IA
+		                                                     , TCMS_CF_AUTH_OVRS_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            UNION	ALL
+		            /*  로그인사용자의 사업자권한이 있는 타행원화계좌번호  */
+		            SELECT      'OBAcntByBizrK'       	AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_SC_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'K'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            UNION   ALL
+		            /*  로그인사용자의 사업자권한이 있는 타행외화계좌번호  */
+		            SELECT      'OBAcntByBizrF'       	AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ' ' || A.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO || A.CUR_CD
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_SC_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'F'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            
+		            UNION   ALL
+		            /*  로그인사용자의 사업자권한이 있는 원화(국내/타행)계좌번호  */
+		            SELECT      'DmstAllAcntByBizrK'       AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_DMST_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'K'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            UNION   ALL
+		            SELECT      'DmstAllAcntByBizrK'       AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_SC_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'K'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            UNION   ALL
+		            /*  로그인사용자의 사업자권한이 있는 외화(국내/타행)계좌번호  */
+		            SELECT      'DmstAllAcntByBizrF'       AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY    AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ' ' || A.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO || A.CUR_CD
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_DMST_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_DMST_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'F'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            UNION   ALL
+		            SELECT      'DmstAllAcntByBizrF'       AS  GROUP_NAME
+		                    ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+		                    ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                    ,   (
+		                            SELECT COM_CD_NM_KEY
+		                              FROM TCMS_CF_COM_CODE
+		                             WHERE GRP_CD = 'COM000'
+		                               AND COM_CD = A.BANK_CD
+		                        ) || '|' || A.ACNT_USAG_KEY    AS  SBOX_NM_KEYS
+		                    ,   '@1 (' || A.SMARK_ACNT_NO || ' ' || A.CUR_CD || ') (@2) '
+		                                                AS  SBOX_NM_EXPR
+		                    ,   A.BANK_CD || A.SMARK_ACNT_NO || A.CUR_CD
+		                                                AS  SORT_KEYS
+		            FROM        TCMS_CF_SC_ACNT A
+		            WHERE       A.ACNT_SEQ_NO     IN  (
+		                                                SELECT ACNT_SEQ_NO
+		                                                  FROM TCMS_CF_AUTH_SC_ACNT
+		                                                 WHERE USER_ID  =   #user_id#
+		                                              )
+		            AND         A.BIZ_SEQ_NO      IN  (
+		                                                SELECT IA.BIZ_SEQ_NO
+		                                                  FROM TCMS_CF_DMST_BIZR      IA
+		                                                     , TCMS_CF_AUTH_DMST_BIZR IB
+		                                                 WHERE IA.BIZ_SEQ_NO    =   IB.BIZ_SEQ_NO
+		                                                   AND IB.USER_ID       =   #user_id#
+		                                              )
+		            AND         A.KRW_FOC_DIV       =   'F'
+		            AND         A.NEW_ISS_YN        =   'N'
+		            AND         A.USE_YN            =   'Y'
+		            ---------------------------------------------------------------------------------------end★ 법인/사업장별 계좌정보(원화/외화/해외/타행) !!!
+		            
+		            UNION ALL
+		            
+		            /*  로그인사용자의 사업자권한이 있는 카드번호    */
+			        SELECT      'CardByBizr'            AS  GROUP_NAME
+			                ,   A.BIZ_SEQ_NO            AS  GROUP_DATA
+			                ,   A.CARD_SEQ_NO           AS  SBOX_CODE
+			                ,   (
+			                        SELECT COM_CD_NM_KEY
+			                          FROM TCMS_CF_COM_CODE
+			                         WHERE GRP_CD = 'COM001'
+			                           AND COM_CD = A.CARD_CO_CD
+			                    )                              AS SBOX_NM_KEYS
+			                ,   '@1 (' || A.SMARK_CARD_NO || ') ' AS SBOX_NM_EXPR
+			                ,   (
+			                        SELECT COM_CD
+			                          FROM TCMS_CF_COM_CODE
+			                         WHERE GRP_CD = 'COM001'
+			                           AND COM_CD = A.CARD_CO_CD
+			                    ) || A.SMARK_CARD_NO             AS SORT_KEYS
+			        FROM        TCMS_CF_CARD A
+			        WHERE       A.CARD_SEQ_NO     IN  (
+			                                            SELECT CARD_SEQ_NO
+			                                              FROM TCMS_CF_AUTH_CARD
+			                                             WHERE USER_ID              = #user_id#
+			                                          )
+			        AND         A.BIZ_SEQ_NO      IN  (
+			                                            SELECT IA.BIZ_SEQ_NO
+			                                              FROM TCMS_CF_DMST_BIZR         IA
+			                                                 , TCMS_CF_AUTH_DMST_BIZR    IB
+			                                             WHERE IA.BIZ_SEQ_NO        = IB.BIZ_SEQ_NO
+			                                               AND IB.USER_ID           = #user_id#
+			                                          )
+			                                          
+					UNION ALL
+					
+			        SELECT  'CardGroupByBizr'       AS  GROUP_NAME
+			               ,'ALL_DATA'              AS  GROUP_DATA
+			               ,CARD_GRP_SEQ_NO         AS  SBOX_CODE
+			               ,''                      AS  SBOX_NM_KEYS
+			               ,CARD_GRP_NM || ' '      AS  SBOX_NM_EXPR
+			               ,CARD_GRP_NM             AS  SORT_KEYS
+			        FROM   TCMS_CF_CARD_GRP
+			        WHERE  USE_YN            = 'Y'
+			          AND  SYS_MGT_NO        = #sys_mgt_no#
+			          AND  CRT_ID IN (SELECT USER_ID 
+			                               FROM TCMS_CF_USER 
+			                              WHERE BIZ_SEQ_NO = (SELECT BIZ_SEQ_NO 
+			                                                    FROM TCMS_CF_USER WHERE USER_ID =  #user_id#)
+			                          )
+			                                          
+			        UNION ALL
+			        
+			        /*  로그인사용자의                               */
+			        /*  카드그룹내 카드권한이 있는 카드번호         */
+			        SELECT      distinct
+			                    'CardByGroup'           AS  GROUP_NAME
+			                ,   'ALL_DATA'              AS  GROUP_DATA
+			                ,   C.CARD_SEQ_NO           AS  SBOX_CODE
+			                ,   (
+			                        SELECT COM_CD_NM_KEY
+			                          FROM TCMS_CF_COM_CODE
+			                         WHERE GRP_CD = 'COM001'
+			                           AND COM_CD = C.CARD_CO_CD
+			                    )                       AS  SBOX_NM_KEYS
+			                ,   '@1 (' || C.SMARK_CARD_NO || ') '
+			                                            AS  SBOX_NM_EXPR
+			                ,   (
+			                        SELECT COM_CD
+			                          FROM TCMS_CF_COM_CODE
+			                         WHERE GRP_CD = 'COM001'
+			                           AND COM_CD = C.CARD_CO_CD
+			                    ) || C.SMARK_CARD_NO    AS  SORT_KEYS
+			        FROM        TCMS_CF_CARD_GRP_DTL    A
+			                ,   TCMS_CF_CARD_GRP        B
+			                ,   TCMS_CF_CARD            C
+			        WHERE       A.CARD_GRP_SEQ_NO   =   B.CARD_GRP_SEQ_NO
+			        AND         A.CARD_SEQ_NO       =   C.CARD_SEQ_NO
+			        AND         A.CARD_SEQ_NO       IN  (
+			                                                SELECT  CARD_SEQ_NO
+			                                                FROM    TCMS_CF_AUTH_CARD
+			                                                WHERE   USER_ID =   #user_id#
+			                                            )
+			                                            
+			        UNION ALL
+			        
+			        SELECT      'CardByGroup'           AS  GROUP_NAME
+			                ,   A.CARD_GRP_SEQ_NO       AS  GROUP_DATA
+			                ,   A.CARD_SEQ_NO           AS  SBOX_CODE               
+			                ,   (
+			                        SELECT COM_CD_NM_KEY
+			                          FROM TCMS_CF_COM_CODE
+			                         WHERE GRP_CD = 'COM001'
+			                           AND COM_CD = C.CARD_CO_CD
+			                    )                       AS  SBOX_NM_KEYS
+			                ,   '@1 (' || C.SMARK_CARD_NO || ') '
+			                                            AS  SBOX_NM_EXPR
+			                ,   (
+			                        SELECT COM_CD
+			                          FROM TCMS_CF_COM_CODE
+			                         WHERE GRP_CD = 'COM001'
+			                           AND COM_CD = C.CARD_CO_CD
+			                    ) || C.SMARK_CARD_NO    AS  SORT_KEYS 
+			        FROM        TCMS_CF_CARD_GRP_DTL    A
+			                ,   TCMS_CF_CARD_GRP        B
+			                ,   TCMS_CF_CARD            C
+			        WHERE       A.CARD_GRP_SEQ_NO   =   B.CARD_GRP_SEQ_NO
+			        AND         A.CARD_SEQ_NO       =   C.CARD_SEQ_NO
+			        AND         A.CARD_SEQ_NO       IN  (
+			                                                SELECT  CARD_SEQ_NO
+			                                                FROM    TCMS_CF_AUTH_CARD
+			                                                WHERE   USER_ID =   #user_id#
+			                                            )
+		     		)
+            ORDER BY    GROUP_NAME,  SORT_KEYS
+        )
+        UNION   ALL /* ================================================================= */
+        SELECT
+                    GROUP_NAME
+                ,   GROUP_DATA
+                ,   SBOX_CODE
+                ,   SBOX_NM_KEYS
+                ,   SBOX_NM_EXPR
+                ,   SORT_KEYS
+        FROM
+        (
+	    	SELECT  *
+	    	FROM	(
+		            SELECT  'AcntByUserMyOut'       AS  GROUP_NAME
+		                ,   'GROUP_DATA0'           AS  GROUP_DATA
+		                ,   B.ACNT_SEQ_NO           AS  SBOX_CODE
+		                ,   (
+		                        SELECT SMARK_CRPN_NM_KEY
+		                          FROM TCMS_CF_DMST_CRPN
+		                         WHERE CRPN_SEQ_NO = C.CRPN_SEQ_NO
+		                    )
+		                    || '|' || C.SMARK_BIZ_NM_KEY || '|' ||
+		                    (
+		                        SELECT COM_CD_NM_KEY
+		                          FROM TCMS_CF_COM_CODE
+		                         WHERE GRP_CD = 'COM000'
+		                           AND COM_CD = B.BANK_CD
+		                    )
+		                    || '|' || B.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                ,   '[@1/@2]@3:' || B.SMARK_ACNT_NO || ' (@4) '
+		                                            AS  SBOX_NM_EXPR
+		                ,   B.BANK_CD || B.SMARK_ACNT_NO           AS  SORT_KEYS
+		              FROM  TCMS_MY_DMST_ACNT   A
+		                 ,  TCMS_CF_DMST_ACNT   B
+		                 ,  TCMS_CF_DMST_BIZR   C
+		             WHERE  A.ACNT_SEQ_NO   = B.ACNT_SEQ_NO
+		               AND  B.BIZ_SEQ_NO    = C.BIZ_SEQ_NO
+		               AND  A.RW_DIV        = '1'
+		               AND  A.KRW_FOC_DIV   = 'K'
+		               AND  A.USER_ID       = #user_id#
+		               AND  A.ACNT_SEQ_NO   IN (
+		                                        SELECT ACNT_SEQ_NO
+		                                          FROM TCMS_CF_AUTH_DMST_ACNT
+		                                         WHERE USER_ID  =   #user_id#
+		                                       )
+		            UNION ALL
+		            SELECT  'AcntByUserMyOut'       AS  GROUP_NAME
+		                 ,  'GROUP_DATA1'           AS  GROUP_DATA
+		                 ,  'X'                     AS  SBOX_CODE
+		                 ,  '--------------------'  AS  SBOX_NM_KEYS
+		                ,   '@1'                    AS  SBOX_NM_EXPR
+		                ,   'X'                     AS  SORT_KEYS
+		              FROM  TCMS_MY_DMST_ACNT
+		             WHERE  RW_DIV          = '1'
+		               AND  KRW_FOC_DIV     = 'K'
+		               AND  USER_ID         = #user_id#
+		               AND  ACNT_SEQ_NO     IN (
+		                                        SELECT ACNT_SEQ_NO
+		                                          FROM TCMS_CF_AUTH_DMST_ACNT
+		                                         WHERE USER_ID  =   #user_id#
+		                                       )
+		             GROUP
+		                BY  USER_ID
+		            UNION ALL
+		            SELECT  'AcntByUserMyOut'       AS  GROUP_NAME
+		                ,   'GROUP_DATA2'           AS  GROUP_DATA
+		                ,   A.ACNT_SEQ_NO           AS  SBOX_CODE
+		                ,   (
+		                        SELECT SMARK_CRPN_NM_KEY
+		                          FROM TCMS_CF_DMST_CRPN
+		                         WHERE CRPN_SEQ_NO = B.CRPN_SEQ_NO
+		                    )
+		                    || '|' || B.SMARK_BIZ_NM_KEY || '|' ||
+		                    (
+		                        SELECT COM_CD_NM_KEY
+		                          FROM TCMS_CF_COM_CODE
+		                         WHERE GRP_CD = 'COM000'
+		                           AND COM_CD = A.BANK_CD
+		                    )
+		                    || '|' || A.ACNT_USAG_KEY AS  SBOX_NM_KEYS
+		                ,   '[@1/@2]@3:' || A.SMARK_ACNT_NO || ' (@4) '
+		                                            AS  SBOX_NM_EXPR
+		                ,   A.BANK_CD || A.SMARK_ACNT_NO           AS  SORT_KEYS
+		              FROM  TCMS_CF_DMST_ACNT A
+		                 ,  TCMS_CF_DMST_BIZR B
+		             WHERE  A.BIZ_SEQ_NO    = B.BIZ_SEQ_NO
+		               AND  A.ACNT_SEQ_NO   IN (
+		                                        SELECT ACNT_SEQ_NO
+		                                          FROM TCMS_CF_AUTH_DMST_ACNT
+		                                         WHERE USER_ID  =   #user_id#
+		                                       )
+		               AND  A.ACNT_SEQ_NO   NOT IN (
+		                                            SELECT ACNT_SEQ_NO
+		                                              FROM TCMS_MY_DMST_ACNT
+		                                             WHERE ACNT_SEQ_NO  =   A.ACNT_SEQ_NO
+		                                               AND USER_ID      =   #user_id#
+		                                               AND RW_DIV       =   '1'
+		                                               AND KRW_FOC_DIV  =   'K'
+		                                           )
+		               AND  A.USE_YN        =   'Y'
+		               AND  A.OUT_ACNT_YN   =   'Y'
+		               AND  A.KRW_FOC_DIV   =   'K'
+		             )
+             ORDER BY  GROUP_NAME,  SORT_KEYS
+        )
+    </select>
+
+</sqlMap>

@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADM72">
+    <typeAlias alias="String" type="java.lang.String" />
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+
+    <!-- 입력: 다국어사용자입력정보 -->
+    <insert id="SADM72000" parameterClass="HashMap">
+      INSERT 
+        INTO TCMS_CF_MLNGG_USER_IN
+             (
+              CD_KEY,   LNGG_CD,   MLNGG_CD_KIND,  CD_NM,      COL_ID, 
+              CRT_ID,   CRT_DATE,  UPD_ID,         UPD_DATE)
+      VALUES (
+              #cd_key#, 'ko',      'UIT',          #cd_nm#,    null, 
+             'SYSTEM',   SYSDATE,  'SYSTEM',       SYSDATE
+             )
+    </insert>    
+    
+    <!-- 조회: 시스템번호 최대값 -->
+    <select id="SADM72010_1" parameterClass="HashMap" resultClass="String">
+       	   SELECT 'CMS'||nvl(lpad( to_number(substr(max(SYS_MGT_NO),4))+1, 4, 0), '0001')  AS SYS_MGT_NO
+		    FROM TCMS_CF_SYS
+    </select>
+
+    <!-- 조회: 법인 일련번호 최대값 -->
+    <select id="SADM72010_2" parameterClass="HashMap" resultClass="String">
+		   SELECT 'DW'||nvl(lpad( to_number( substr(max(CRPN_SEQ_NO),3) )+1, 5, 0), '00001') as CRPN_SEQ_NO                      
+		     FROM TCMS_CF_DMST_CRPN
+    </select>
+
+    <!-- 조회: 사업장 일련번호 최대값 -->
+    <select id="SADM72010_3" parameterClass="HashMap" resultClass="String">
+       	   SELECT 'DB'||nvl(lpad( to_number(substr(max(BIZ_SEQ_NO),3))+1, 5, 0), '00001')  AS BIZ_SEQ_NO
+		    FROM TCMS_CF_DMST_BIZR
+    </select>
+    
+    <!-- 조회: 사용자일련번호 최대값 -->
+    <select id="SADM72010_4" parameterClass="HashMap" resultClass="String">
+       	   SELECT 'U'||nvl(lpad( to_number(substr(max(USER_ID),2))+1, 9, 0), '000000001')  AS USER_ID
+		    FROM TCMS_CF_USER
+    </select>
+    
+    <!-- 입력: 시스템 정보 등록 -->
+    <insert id="SADM72011_1" parameterClass="HashMap">
+    INSERT INTO  TCMS_CF_SYS 
+    	      (
+    	         SYS_MGT_NO
+    	       , SYS_MGT_NM               --시스템 관리 명
+    	       , SYS_MGT_NM_KEY           --시스템 관리 명 KEY 
+    	       , POP_ALM_YN               --팝업 알림 여부
+    	       , POP_ALM_PERD             --팝업 알림 주기
+    	       , SMS_USE_YN               --SMS 사용 여부
+    	       , SMS_SND_STR_DTM          --SMS 발송 시작 시간
+    	       , SMS_SND_END_DTM          --SMS 발송 종료 시간
+    	       , SMS_SND_TEL_NO           --SMS 발송 전화번호
+    	       , PWD_ERR_PASS_CNT         --비밀번호 연속오류 허용횟수
+    	       , PWD_ERR_LOCK_DTM         --비밀번호 연속오류 잠금시간
+    	       , PWD_UPD_PERD             --비밀번호 변경 주기
+    	       , RECVR_NM_CASH_DAY        --수취인 성명 캐시 유효일수
+    	       , CDTM_BAL_PASS_DTM        --실시간 잔액 유휴 시간
+    	       , NOTI_MTTR_POP_DTM        --주의 사항 팝업 시간
+    	       , GRID_PAGE_ROW_CNT        --GRID PAGE ROW 건수
+    	       , KRW_SUP_MAX_CNT          --원화 지급 최대 건수
+    	       , FOC_SUP_MAX_CNT          --외화 지급 최대 건수
+    	       , OBANK_SCRP_SUP_MAX_CNT   --타행스크래핑 지급 최대 건수
+    	       , OBANK_SCRP_REPT_EXEC_DAY --타행스크래핑 중복 실행일수
+    	       , OBANK_TRNS_FST_INQ_DAY   --타행 거래 최초 조회일수
+    	       , RE_TRNS_CHK_YN           --중복이체 체크 여부 
+    	       , ERP_LNK_YN               --ERP 연계 여부
+    	       , ERP_LNK_DIV              --ERP 연계 구분
+    	       , MLANG_USE_YN             --다국어 사용 여부
+    	       , MAIN_BANK_CD             --주거래 은행 코드
+    	       , REP_DMST_CRPN_SEQ_NO     --대표 국내 법인 일련번호
+    	       , REP_ABRD_CRPN_SEQ_NO     --대표 해외 법인 일련번호
+    	       , DUAL_EXEC_SVR_IP         --이중화 실행 서버 IP
+    	       , CRT_ID
+    	       , CRT_DATE
+    	       , UPD_ID
+    	       , UPD_DATE 
+              ) 
+         VALUES 
+              (
+                 #sys_mgt_no#
+               , #sys_mgt_nm#             --시스템 관리 명
+               , #sys_mgt_nm_key#         --시스템 관리 명 KEY 
+               , 'Y'                      --팝업 알림 여부
+               , 180                      --팝업 알림 주기
+               , 'N'                      --SMS 사용 여부
+               , '0900'                   --SMS 발송 시작 시간
+               , '1800'                   --SMS 발송 종료 시간
+               , '02-1544-9350'           --SMS 발송 전화번호
+               , 5                        --비밀번호 연속오류 허용횟수
+               , 1                        --비밀번호 연속오류 잠금시간
+               , 3                        --비밀번호 변경 주기
+               , 365                      --수취인 성명 캐시 유효일수
+               , 1 			              --실시간 잔액 유휴 시간
+               , 0                        --주의 사항 팝업 시간
+               , 500	                  --GRID PAGE ROW 건수
+               , 100                      --원화 지급 최대 건수
+               , 10                       --외화 지급 최대 건수
+               , 10                       --타행스크래핑 지급 최대 건
+               , 7 			              --타행스크래핑 중복 실행일수
+               , 30                       --타행 거래 최초 조회일수
+               , 'Y'		              --중복이체 체크 여부 
+               , 'N'                      --ERP 연계 여부
+               , 'FINGER'	              --ERP 연계 구분
+               , 'N'                      --다국어 사용 여부
+               , '035' 		              --주거래 은행 코드
+               , #crpn_seq_no#            --대표 국내 법인 일련번호
+               , ''                       --대표 해외 법인 일련번호
+               , ''                       --이중화 실행 서버 IP
+               , 'SYSTEM'                 
+               , SYSDATE                  
+               , 'SYSTEM'                 
+               , SYSDATE
+               ) 				
+    </insert>
+    
+    
+    <!-- 입력: 사용자 정보 등록(총괄관리자) -->
+    <insert id="SADM72011_2" parameterClass="HashMap">
+     INSERT INTO TCMS_CF_USER 
+               ( 
+                 USER_ID           --사용자 ID
+               , SYS_MGT_NO        --시스템 관리 번호
+               , LOGIN_ID          --로그인 ID
+               , USER_NM           --사용자 명
+               , BIZ_SEQ_NO        --사업장 일련번호
+               , USER_PWD          --사용자 비밀번호
+               , PWD_ERR_TCNT      --비밀번호 오류 횟수
+               , PWD_ERR_DTM       --비밀번호 오류 시간
+               , PWD_UPD_DT        --비밀번호 변경 일자
+               , USER_TYPE_CD      --사용자 유형 코드
+               , REGR_AUTH_YN      --등록자 권한 유무
+               , APVR_AUTH_YN      --승인자 권한 유무
+               , EXER_AUTH_YN      --실행자 권한 유무
+               , SAL_OFCR_YN       --급여 담당자 여부
+               , RPTSITE_USE_YN    --보고서사이트 사용 여부
+               , POP_ALM_USE_YN    --팝업 알림 사용 여부
+               , USE_YN            --사용 여부
+               , CELL_NO           --핸드폰 번호
+               , GRID_PAGE_ROW_CNT --GRID PAGE ROW 건수
+               , MEMO              --메모
+               , CRT_ID
+               , CRT_DATE
+               , UPD_ID
+               , UPD_DATE 
+               )  
+         VALUES
+               (
+                 #user_id_sysadmin#   --사용자 ID
+               , #sys_mgt_no#         --시스템 관리 번호
+               , 'sysadmin'           --로그인 ID
+               , '총괄관리자'             --사용자 명
+               , #biz_seq_no#         --사업장 일련번호
+               , 'A29671329899C189751080EAFB3EDFA8'  --사용자 비밀번호(f1234)
+               , 0                    --비밀번호 오류 횟수
+               , null                 --비밀번호 오류 시간
+               , null                 --비밀번호 변경 일자
+               , '0'                  --사용자 유형 코드
+               , 'N'                  --등록자 권한 유무
+               , 'N'                  --승인자 권한 유무
+               , 'N'                  --실행자 권한 유무
+               , 'N'                  --급여 담당자 여부
+               , 'N'                  --보고서사이트 사용 여부
+               , 'Y'                  --팝업 알림 사용 여부
+               , 'Y'                  --사용 여부
+               , ''                   --핸드폰 번호
+               , null                 --GRID PAGE ROW 건수
+               , '시스템관리자'           --메모
+               , 'SYSTEM'                 
+               , SYSDATE                  
+               , 'SYSTEM'                 
+               , SYSDATE
+               )
+    </insert>
+    
+    <!-- 입력: 사용자 정보 등록(관리자) -->
+    <insert id="SADM72011_3" parameterClass="HashMap">
+     INSERT INTO TCMS_CF_USER 
+               ( 
+                 USER_ID           --사용자 ID
+               , SYS_MGT_NO        --시스템 관리 번호
+               , LOGIN_ID          --로그인 ID
+               , USER_NM           --사용자 명
+               , BIZ_SEQ_NO        --사업장 일련번호
+               , USER_PWD          --사용자 비밀번호
+               , PWD_ERR_TCNT      --비밀번호 오류 횟수
+               , PWD_ERR_DTM       --비밀번호 오류 시간
+               , PWD_UPD_DT        --비밀번호 변경 일자
+               , USER_TYPE_CD      --사용자 유형 코드
+               , REGR_AUTH_YN      --등록자 권한 유무
+               , APVR_AUTH_YN      --승인자 권한 유무
+               , EXER_AUTH_YN      --실행자 권한 유무
+               , SAL_OFCR_YN       --급여 담당자 여부
+               , RPTSITE_USE_YN    --보고서사이트 사용 여부
+               , POP_ALM_USE_YN    --팝업 알림 사용 여부
+               , USE_YN            --사용 여부
+               , CELL_NO           --핸드폰 번호
+               , GRID_PAGE_ROW_CNT --GRID PAGE ROW 건수
+               , MEMO              --메모
+               , CRT_ID
+               , CRT_DATE
+               , UPD_ID
+               , UPD_DATE 
+               )  
+         VALUES
+               (
+                 #user_id_admin#      --사용자 ID
+               , #sys_mgt_no#         --시스템 관리 번호
+               , 'admin'              --로그인 ID
+               , '관리자'               --사용자 명
+               , #biz_seq_no#         --사업장 일련번호
+               , 'A29671329899C189751080EAFB3EDFA8'  --사용자 비밀번호(f1234)
+               , 0                    --비밀번호 오류 횟수
+               , null                 --비밀번호 오류 시간
+               , null                 --비밀번호 변경 일자
+               , '1'                  --사용자 유형 코드
+               , 'N'                  --등록자 권한 유무
+               , 'N'                  --승인자 권한 유무
+               , 'N'                  --실행자 권한 유무
+               , 'N'                  --급여 담당자 여부
+               , 'N'                  --보고서사이트 사용 여부
+               , 'Y'                  --팝업 알림 사용 여부
+               , 'Y'                  --사용 여부
+               , ''                   --핸드폰 번호
+               , null                 --GRID PAGE ROW 건수
+               , '시스템관리자'           --메모
+               , 'SYSTEM'                 
+               , SYSDATE                  
+               , 'SYSTEM'                 
+               , SYSDATE
+               )
+    </insert>    
+    
+    
+    <!-- 입력: FIRM 정보 등록 -->
+    <insert id="SADM72011_4" parameterClass="HashMap">
+		INSERT INTO TCMS_CF_FIRM_DTL
+		(
+		         BIZ_SEQ_NO                --사업장 일련번호
+		       , FBK_DIV_CD                --펌뱅킹 구분 코드
+		       , SRV_DIV_CD                --서비스 구분 코드
+		       , BANK_CD                   --은행 코드
+		       , ENP_NO                    --업체 번호
+		       , SYS_MGT_NO                --시스템 관리 번호
+		       , VAN_NO                    --VAN 번호
+		       , VAN_TRMS_NO               --VAN 송신 번호
+		       , DCMT_CD                   --식별 코드
+		       , MGT_STR_DT                --관리 시작 일자
+		       , MTRNS_ACNT_SEQ_NO         --대량이체 계좌 일련번호
+		       , MTRNS_CLOSE_DTM           --대량이체 마감 시간
+		       , USE_YN                    --사용 여부
+		       , RMK                       --비고
+		       , CRT_ID                    --생성자
+		       , CRT_DATE                  --생성 일시
+		       , UPD_ID                    --수정자
+		       , UPD_DATE                  --수정 일시
+		)
+		 SELECT
+		         #biz_seq_no#              --사업장 일련번호
+		       , FBK_DIV_CD                --펌뱅킹 구분 코드
+		       , SRV_DIV_CD                --서비스 구분 코드
+		       , BANK_CD                   --은행 코드
+		       , ENP_NO                    --업체 번호
+		       , #sys_mgt_no#              --시스템 관리 번호
+		       , VAN_NO                    --VAN 번호
+		       , VAN_TRMS_NO               --VAN 송신 번호
+		       , DCMT_CD                   --식별 코드
+		       , MGT_STR_DT                --관리 시작 일자
+		       , MTRNS_ACNT_SEQ_NO         --대량이체 계좌 일련번호
+		       , MTRNS_CLOSE_DTM           --대량이체 마감 시간
+		       , USE_YN                    --사용 여부
+		       , RMK                       --비고
+               , 'SYSTEM'                 
+               , SYSDATE                  
+               , 'SYSTEM'                 
+               , SYSDATE
+		FROM   TCMS_CF_FIRM_DTL
+		WHERE  BIZ_SEQ_NO = 'DB00001' 
+    </insert>
+    
+    
+    <!-- 입력: 메뉴 정보 등록 -->
+    <insert id="SADM72011_5" parameterClass="HashMap">
+		INSERT INTO TCMS_CF_MENU
+		         (
+		         MENU_SEQ_NO               --메뉴 일련번호
+		       , SYS_MGT_NO                --시스템 관리 번호
+		       , MENU_ID                   --메뉴 ID
+		       , MENU_NM                   --메뉴 명
+		       , MENU_NM_KEY               --메뉴 명 KEY
+		       , LVL                       --레벨
+		       , SORT                      --우선순위
+		       , URI                       --URI
+		       , HELP_URI                  --도움말 URI
+		       , UP_MENU_ID                --상위 메뉴 ID
+		       , CRT_ID                    --생성자
+		       , CRT_DATE                  --생성 일시
+		       , UPD_ID                    --수정자
+		       , UPD_DATE                  --수정 일시
+		         )
+		 SELECT
+		         #sys_mgt_no#||MENU_ID     --메뉴 일련번호
+		       , #sys_mgt_no#              --시스템 관리 번호
+		       , MENU_ID                   --메뉴 ID
+		       , MENU_NM                   --메뉴 명
+		       , MENU_NM_KEY               --메뉴 명 KEY
+		       , LVL                       --레벨
+		       , SORT                      --우선순위
+		       , URI                       --URI
+		       , HELP_URI                  --도움말 URI
+		       , UP_MENU_ID                --상위 메뉴 ID
+               , 'SYSTEM'                 
+               , SYSDATE                  
+               , 'SYSTEM'                 
+               , SYSDATE
+		   FROM  TCMS_CF_MENU
+		  WHERE  SYS_MGT_NO = 'CMS0001'
+    </insert>
+    
+    <!-- 입력: 메뉴권한 정보 등록(총괄관리자) -->
+    <insert id="SADM72011_6" parameterClass="HashMap">
+    INSERT INTO TCMS_CF_AUTH_MENU 
+          VALUE
+               (  SELECT  #user_id_sysadmin#, MENU_SEQ_NO, 'SYSTEM', SYSDATE, 'SYSTEM', SYSDATE  
+                    FROM  TCMS_CF_MENU 
+                   WHERE  SYS_MGT_NO = #sys_mgt_no#
+                     AND  SUBSTR(MENU_ID,1,2) IN ('UM','UE') 	
+                     AND  LVL = '3' 	
+                )                      
+    </insert>
+    
+    
+    <!-- 입력: 알림대상 정보 등록 -->
+    <insert id="SADM72011_7" parameterClass="HashMap">
+    INSERT INTO TCMS_CF_NOTI_TGT
+		      (
+		         SYS_MGT_NO                --시스템 관리 번호
+		       , ALM_TYPE_CD               --알림 유형 코드
+		       , ALM_USE_YN                --알림 사용 여부
+		       , SMS_ALM_USE_YN            --SMS 알림 사용 여부
+		       , EXPI_ALM_SDT_1            --만기 알림 기준일 1
+		       , EXPI_ALM_SDT_2            --만기 알림 기준일 2
+		       , EXPI_ALM_SDT_3            --만기 알림 기준일 3
+		       , ALM_TG_ID_1               --알림 대상 아이디 1
+		       , ALM_TG_ID_2               --알림 대상 아이디 2
+		       , CRT_ID                    --생성자
+		       , CRT_DATE                  --생성 일시
+		       , UPD_ID                    --수정자
+		       , UPD_DATE                  --수정 일시
+		       )
+		 SELECT 
+		         #sys_mgt_no#             --시스템 관리 번호
+		       , ALM_TYPE_CD               --알림 유형 코드
+		       , ALM_USE_YN                --알림 사용 여부
+		       , SMS_ALM_USE_YN            --SMS 알림 사용 여부
+		       , EXPI_ALM_SDT_1            --만기 알림 기준일 1
+		       , EXPI_ALM_SDT_2            --만기 알림 기준일 2
+		       , EXPI_ALM_SDT_3            --만기 알림 기준일 3
+		       , ALM_TG_ID_1               --알림 대상 아이디 1
+		       , ALM_TG_ID_2               --알림 대상 아이디 2
+               , 'SYSTEM'                 
+               , SYSDATE                  
+               , 'SYSTEM'                 
+               , SYSDATE
+		   FROM  TCMS_CF_NOTI_TGT
+		  WHERE  SYS_MGT_NO = 'CMS0001'
+    </insert>
+    
+    
+    <!-- 입력: 스케쥴 정보 등록 -->
+    <insert id="SADM72011_8" parameterClass="HashMap">
+	INSERT INTO  EX_SCHD
+		       (
+		         JOB_SEQ_NO                --JOB 일련번호
+		       , COIN_TYPE                 --시스템ID
+		       , TASK_ID                   --TASK ID
+		       , TASK_DIV                  --TASK 구분
+		       , FST_RANK                  --우선 순위
+		       , PARAM                     --파라미터
+		       , EXEC_ST_CD                --실행 상태 코드
+		       , EXEC_FO_CD                --실행 방식 코드
+		       , ACT_STR_DTM               --가동 시작 시간
+		       , ACT_END_DTM               --가동 종료 시간
+		       , EXEC_RE_DTM               --실행 반복 시간
+		       , EXEC_DL_DTM               --실행 지연 시간
+		       , SCHE_TIME                 --일정 시각
+		       , RMK                       --비고
+		       , USE_YN                    --사용 여부
+		       , LST_EXEC_DATE             --최종 실행 일시
+		       , NEXT_EXEC_DATE            --다음 실행 일시
+		       , CRT_ID                    --생성자
+		       , CRT_DATE                  --생성 일시
+		       , UPD_ID                    --수정자
+		       , UPD_DATE                  --수정 일시        
+		        ) 
+		SELECT
+		         #sys_id#||TASK_ID         --JOB 일련번호
+		       , #COIN_TYPE#               --시스템 관리 번호
+		       , TASK_ID                   --TASK ID
+		       , TASK_DIV                  --TASK 구분
+		       , FST_RANK                  --우선 순위
+		       , PARAM                     --파라미터
+		       , EXEC_ST_CD                --실행 상태 코드
+		       , EXEC_FO_CD                --실행 방식 코드
+		       , ACT_STR_DTM               --가동 시작 시간
+		       , ACT_END_DTM               --가동 종료 시간
+		       , EXEC_RE_DTM               --실행 반복 시간
+		       , EXEC_DL_DTM               --실행 지연 시간
+		       , SCHE_TIME                 --일정 시각
+		       , RMK                       --비고
+		       , USE_YN                    --사용 여부
+		       , LST_EXEC_DATE             --최종 실행 일시
+		       , NEXT_EXEC_DATE            --다음 실행 일시
+               , 'SYSTEM'                 
+               , SYSDATE                  
+               , 'SYSTEM'                 
+               , SYSDATE
+		   FROM  EX_SCHD
+		  WHERE  COIN_TYPE = #coin_type#
+    </insert>
+    
+    
+    
+    <!-- 입력: 법인 정보 등록 -->
+    <insert id="SADM72020" parameterClass="HashMap">
+      INSERT INTO  TCMS_CF_DMST_CRPN 
+                (  
+                   CRPN_SEQ_NO       --법인 일련번호
+                ,  SYS_MGT_NO        --시스템 관리 번호
+                ,  CRPN_NM           --법인 명
+                ,  SMARK_CRPN_NM     --화면표시 법인 명
+                ,  SMARK_CRPN_NM_KEY --화면표시 법인 명 KEY
+                ,  CRPN_REG_NO       --법인 등록번호
+                ,  REP_BIZ_SEQ_NO    --대표 사업장 일련번호
+                ,  MEMO              --메모
+                ,  CRT_ID            
+                ,  CRT_DATE          
+                ,  UPD_ID          
+                ,  UPD_DATE 
+                ) 
+           VALUES
+                (
+                   #crpn_seq_no#
+                ,  #sys_mgt_no#
+                ,  #crpn_nm#
+                ,  #crpn_nm#
+                ,  #smark_crpn_nm_key#
+                ,  #crpn_reg_no#
+                ,  #biz_seq_no#
+                ,  ''
+                ,  'SYSTEM'
+                , 	sysdate
+                ,  'SYSTEM'
+                ,   sysdate
+                ) 				
+    </insert>
+    
+    
+    
+    <!-- 입력: 사업장 정보 추가 등록 -->
+    <insert id="SADM72021" parameterClass="HashMap">
+      INSERT INTO  TCMS_CF_DMST_BIZR 
+                (
+                   BIZ_SEQ_NO
+                ,  BIZ_NM
+                ,  SMARK_BIZ_NM
+                ,  SMARK_BIZ_NM_KEY
+                ,  BIZR_NO
+                ,  CRPN_SEQ_NO
+                ,  SYS_MGT_NO
+                ,  OWNER_NM
+                ,  OPEN_YMD
+                ,  BIZ_LOC
+                ,  HEAD_OFC_LOC
+                ,  TPOP
+                ,  TPBZ
+                ,  CRT_ID
+                ,  CRT_DATE
+                ,  UPD_ID
+                ,  UPD_DATE
+                ) 
+           values 
+                (
+                   #biz_seq_no# 
+                ,  #biz_nm#
+                ,  #biz_nm#
+                ,  #smark_biz_nm_key#
+                ,  #bizr_no#
+                ,  #crpn_seq_no#
+                ,  #sys_mgt_no#				                        
+				,  ''
+				,  #open_ymd#
+				,  ''
+				,  ''
+				,  ''
+				,  ''
+				,  'SYSTEM'
+				,  sysdate
+				,  'SYSTEM'
+				,  sysdate
+				)
+    </insert>
+
+    <!-- 입력: 사업장 정보 추가 등록 => 공휴일 등록 -->
+    <insert id="SADM72021_2" parameterClass="HashMap">
+      INSERT INTO  TCMS_CF_OFFDAY 
+                (
+                   BIZ_SEQ_NO
+                ,  OFFDAY
+                ,  OFFDAY_NM
+                ,  RMK
+                ,  CRT_ID
+                ,  CRT_DATE
+                ,  UPD_ID
+                ,  UPD_DATE
+                ) 
+           SELECT  #biz_seq_no#
+                ,  OFFDAY
+                ,  OFFDAY_NM
+                ,  RMK
+                ,  'SYSTEM'
+                ,  SYSDATE
+                ,  'SYSTEM'
+                ,  SYSDATE
+             FROM  TCMS_CF_OFFDAY 
+            WHERE  BIZ_SEQ_NO = 'DB00001'
+    </insert>
+
+    
+    
+    <!-- 입력: 대량이체 정보 추가 등록 -->
+    <insert id="SADM72022" parameterClass="HashMap">
+     INSERT INTO  TCMS_CF_FIRM_DTL 
+               (  BIZ_SEQ_NO
+               ,  FBK_DIV_CD
+               ,  SRV_DIV_CD
+               ,  BANK_CD
+               ,  ENP_NO
+               ,  SYS_MGT_NO
+               ,  MTRNS_CLOSE_DTM
+               ,  USE_YN
+               ,  CRT_ID
+               ,  CRT_DATE
+               ,  UPD_ID
+               ,  UPD_DATE 
+               ) 
+          VALUES 
+               (  (SELECT  REP_BIZ_SEQ_NO
+                    FROM  TCMS_CF_DMST_CRPN
+                   WHERE  CRPN_SEQ_NO = (
+                                         SELECT  REP_DMST_CRPN_SEQ_NO
+                                           FROM  TCMS_CF_SYS
+                                          WHERE  SYS_MGT_NO = 'CMS0001')
+                   )
+               ,  '2'
+               ,  '110'
+               ,  #bank_cd#
+               ,  #enp_no#
+               ,  #sys_mgt_no#
+               ,  '1630'
+               ,  'N'
+               ,  'SYSTEM'
+               ,  SYSDATE
+               ,  'SYSTEM'
+               ,  SYSDATE 
+               )
+    </insert>
+    
+    <!-- 삭제 : 원화계좌 일자별 잔액 삭제 -->
+    <delete id="SADM72023" parameterClass="HashMap">
+		DELETE FROM TCMS_FM_KRW_DAY_BAL
+		WHERE  SYS_MGT_NO = #sys_mgt_no#
+		AND    BAL_DT <![CDATA[>=]]> replace(#bal_dt#,'-','') 
+    </delete>
+
+    <!-- 삭제 : 타행원화계좌 일자별 잔액 삭제 -->
+    <delete id="SADM72023_1" parameterClass="HashMap">
+		DELETE FROM TCMS_FM_SC_KRW_DAY_BAL
+		WHERE  SYS_MGT_NO = #sys_mgt_no#
+		AND    BAL_DT <![CDATA[>=]]> replace(#bal_dt#,'-','') 
+    </delete>
+
+    <!-- 삭제 : 타행원화계좌 일자별 잔액 삭제시 타행계좌 마스터의 최종잔액생성일자 업데이트 -->
+    <update id="SADM72023_2" parameterClass="HashMap">
+		UPDATE TCMS_CF_SC_ACNT
+		SET    LST_BAL_CRT_DT = replace(#bal_dt#,'-','')
+		WHERE  LST_BAL_CRT_DT <![CDATA[>]]> replace(#bal_dt#,'-','')
+    </update>
+
+</sqlMap>

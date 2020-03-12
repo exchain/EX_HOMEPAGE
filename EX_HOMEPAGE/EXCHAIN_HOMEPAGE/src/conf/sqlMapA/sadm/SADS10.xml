@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADS10">
+    <typeAlias alias="String" type="java.lang.String" />
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+    <!-- 조회: 사용자로그인처리 > 사용자정보(종합) -->
+    <select id="SADS10010" parameterClass="HashMap" resultClass="LinkedHashMap" >
+    
+        SELECT      A.CUST_SEQNO   AS USER_ID    --사용자ID(일련번호)
+                ,   A.CUST_ID      AS LOGIN_ID   --로그인ID
+                ,   A.CUST_NM      AS USER_NM    --사용자명
+                ,   A.HASH_CUST_PW AS USER_PWD   --사용자비밀번호
+				
+                ,   A.CUST_SEQNO                --고객일련번호
+                ,   A.CUST_ID                   --고객ID
+                ,   A.HASH_CUST_PW              --고객비밀번호
+                ,   A.CUST_STATE                --고객상태
+                ,   A.TERMS_AGREE_YN            --약관동의여부
+                ,   A.TERMS_AGREE_DTM           --약관동의일시
+                ,   A.EMAIL_AUTH_YN             --이메일인증여부
+                ,   A.EMAIL_AUTH_DTM            --이메일인증일시
+                ,   A.PHONE_AUTH_YN             --휴대폰인증여부
+                ,   A.PHONE_AUTH_DTM            --휴대폰인증일시
+                ,   A.BANK_ACCT_AUTH_YN         --은행계좌인증여부
+                ,   A.BANK_ACCT_AUTH_DTM        --은행계좌인증일시
+                ,   A.CUST_NM                   --고객성명
+                ,   A.BIRTHDAY                  --생년월일
+                ,   A.SEX_GB                    --성별구분
+                ,   A.FOREIGN_YN                --외국인여부
+                ,   A.MINOR_YN                  --미성년자여부
+                ,   A.PHONE_TELCO               --휴대폰통신사
+                ,   A.PHONE_NO                  --휴대폰번호
+                ,   A.REG_DTM                   --가입일시
+                ,   A.WITHDRAW_DTM              --탈퇴일시
+                ,   A.LAST_LOGIN_DTM            --최종접속일시
+                ,   A.LAST_UPD_DTM              --최종갱신일시		
+                
+				,   (
+				     SELECT BANK_CD 
+                     FROM   EX_CUST_BANK_ACCT
+                     WHERE CUST_SEQNO = A.CUST_SEQNO
+                     AND   ROWNUM = 1
+				     )AS BANK_CD				--은행코드
+				,   (
+				     SELECT BANK_ACCT_NO 
+                     FROM   EX_CUST_BANK_ACCT
+                     WHERE CUST_SEQNO = A.CUST_SEQNO
+                     AND   ROWNUM = 1
+				     )AS BANK_ACCT_NO			--계좌번호
+        
+                ,   #Format_Date_Separator#     AS  Format_Date_Separator
+                ,   #Format_Time_Separator#     AS  Format_Time_Separator
+                ,   #Format_Amount_Separator#   AS  Format_Amount_Separator
+                ,   #Format_Point_Separator#    AS  Format_Point_Separator
+                ,   #Format_Date_YMD_Order#     AS  Format_Date_YMD_Order
+                ,   #Format_Date_YMx_Order#     AS  Format_Date_YMx_Order
+                ,   #Login_Acs_Dt#              AS  Login_Acs_Dt
+                ,   #Login_Acs_Dt_Seq#          AS  Login_Acs_Dt_Seq
+				
+        FROM        EX_CUST_INFO        A       --/고객정보
+        WHERE       A.CUST_SEQNO        =   #cust_seqno#
+        
+    </select>
+
+    <!-- 조회: 사용자로그인처리 > 사용자정보/로그인유효성검사 -->
+    <select id="SADS10011" parameterClass="HashMap" resultClass="LinkedHashMap" >
+    <![CDATA[
+        SELECT      A.CUST_SEQNO            --고객일련번호
+                ,   A.SYS_ID                --시스템ID
+                ,   A.CUST_ID               --고객ID
+                ,   A.HASH_CUST_PW          --사용자비밀번호
+                ,   A.CUST_STATE            --고객상태
+        FROM        EX_CUST_INFO        A   --고객정보
+        WHERE       A.CUST_ID       =   #cust_id#
+    ]]>
+    </select>
+    
+    <!-- 조회: 사용자 비밀번호 오류 카운트 조회 -->
+    <select id="SADS10012" parameterClass="HashMap" resultClass="LinkedHashMap" >
+    <![CDATA[
+        SELECT      A.LOGIN_ERR_CNT
+        FROM        EX_LOGIN_HIS        A   
+        WHERE       A.CUST_SEQNO    =   #cust_seqno#
+        AND         A.LOGIN_SEQNO   = (SELECT MAX(LOGIN_SEQNO)
+                                       FROM   EX_LOGIN_HIS
+                                       WHERE  CUST_SEQNO  = #cust_seqno#
+                                      )
+    ]]>
+    </select>    
+    
+    
+    <!-- 수정: 사용자 차단회원으로 등록  -->
+    <update id="SADS10013" parameterClass="HashMap" >
+        UPDATE  EX_CUST_INFO
+        SET     CUST_STATE    = '700'
+        WHERE   CUST_SEQNO    =   #cust_seqno#
+    </update>
+
+    <!-- 등록: 사용자로그인처리 > 사용자접속이력 - 로그인성공시 접속이력 등록 -->
+    <insert id="SADS10015" parameterClass="HashMap" >
+    INSERT  INTO EX_LOGIN_HIS
+                (   
+                    LOGIN_SEQNO
+                  , CUST_SEQNO
+                  , LOGIN_DTM
+                  , LOGIN_AUTH_RSLT
+                  , LOGIN_ERR_CNT
+                  , LOGIN_IP_ADDR
+                  , LOGIN_MAC_ADDR
+                  , LOGIN_DEVICE
+                  , LOGIN_DEMEVI_MODEL
+                  , LOGIN_OS
+                  , LOGIN_OS_VER
+                  , LOGIN_BROWSER
+                  , LOGIN_BROWSER_VER
+                )
+        VALUES  (   
+                    SQ_EX_LOGIN_HIS.NEXTVAL   --접속일련번호
+                  , #cust_seqno#                  --고객일련번호
+                  , SYSDATE                       --접속일시
+                  , #login_auth_rslt#             --접속인증결과
+                  , #login_err_cnt#               --접속오류횟수
+                  , #login_ip_addr#               --접속IP주소
+                  , #login_mac_addr#              --접속Mac주소
+                  , #login_device#                --접속단말기
+                  , #login_demevi_model#          --접속단말기모델
+                  , #login_os#                    --접속OS
+                  , #login_os_ver#                --접속OS버전
+                  , #login_browser#               --접속브라우저
+                  , #login_browser_ver#           --접속브라우저버전
+                )
+    </insert>
+    
+
+
+    <!-- 조회: 사용자로그인처리 > 로그인후권한정보 > 메뉴목록 -->
+    <select id="SADS10020" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT  LEVEL
+            ,   SORT
+            ,   MENU_ID
+            ,   MENU_NM
+            ,   URI
+            ,   HELP_URI
+            ,   Case When LEVEL > 2 Then
+                     Sys_Connect_By_Path(MENU_NM_KEY, '>')
+                End                     AS  MENU_PATH
+            ,   MENU_SEQ_NO
+            ,   UP_MENU_ID
+            ,   MENU_NM_KEY
+            ,   Connect_By_Root MENU_ID AS  ROOT_ID
+        FROM
+        (
+            SELECT  *
+            FROM    TCMS_CF_MENU
+            WHERE   SYS_MGT_NO      =   #sys_mgt_no#
+            AND     MENU_SEQ_NO     IN
+                    (
+                        SELECT  MENU_SEQ_NO
+                        FROM    (
+                                    SELECT  *
+                                    FROM    TCMS_CF_MENU
+                                    WHERE   SYS_MGT_NO  =   #sys_mgt_no#
+                                )
+                        START WITH  MENU_SEQ_NO     IN
+                                    (
+                                        SELECT  MENU_SEQ_NO
+                                        FROM    TCMS_CF_AUTH_MENU
+                                        WHERE   USER_ID     =   #user_id#
+                                    )
+                        CONNECT BY  MENU_ID =   PRIOR   UP_MENU_ID
+                        UNION   -------------------------------------------
+                        SELECT  MENU_SEQ_NO
+                        FROM    (
+                                    SELECT  *
+                                    FROM    TCMS_CF_MENU
+                                    WHERE   SYS_MGT_NO  =   #sys_mgt_no#
+                                )
+                        START WITH  MENU_SEQ_NO     IN
+                                    (
+                                        SELECT  MENU_SEQ_NO
+                                        FROM    TCMS_CF_AUTH_MENU
+                                        WHERE   USER_ID     =   #user_id#
+                                    )
+                        CONNECT BY  PRIOR   MENU_ID =   UP_MENU_ID
+                    )
+        )
+        START WITH  UP_MENU_ID  =   'U00000000'
+        CONNECT BY  UP_MENU_ID  =   PRIOR   MENU_ID
+        ORDER SIBLINGS BY   LVL,    SORT
+    </select>
+    <!-- 조회: 사용자로그인처리 > 로그인후권한정보읽기 > 법인정보 -->
+    <select id="SADS10021" parameterClass="HashMap" resultClass="LinkedHashMap" >
+    	SELECT  *
+    	FROM	(
+			        SELECT  B.SYS_MGT_NO
+			            ,   B.CRPN_SEQ_NO
+			            ,   B.SMARK_CRPN_NM
+			            ,   B.SMARK_CRPN_NM_KEY
+			            ,   'DMST'              AS  CRPN_DIV
+			        FROM    TCMS_CF_AUTH_DMST_CRPN  A
+			            ,   TCMS_CF_DMST_CRPN       B
+			        WHERE   A.CRPN_SEQ_NO   =   B.CRPN_SEQ_NO
+			        AND     A.USER_ID       =   #user_id#
+			        UNION   ALL     ------------------------------------
+			        SELECT  B.SYS_MGT_NO
+			            ,   B.CRPN_SEQ_NO
+			            ,   B.SMARK_CRPN_NM
+			            ,   B.SMARK_CRPN_NM_KEY
+			            ,   'OVRS'              AS  CRPN_DIV
+			        FROM    TCMS_CF_AUTH_OVRS_CRPN  A
+			            ,   TCMS_CF_OVRS_CRPN       B
+			        WHERE   A.CRPN_SEQ_NO   =   B.CRPN_SEQ_NO
+			        AND     A.USER_ID       =   #user_id#
+			    )
+        ORDER BY
+                CRPN_SEQ_NO
+    </select>
+    <!-- 조회: 사용자로그인처리 > 사용자권한정보읽기 > 사업장정보 -->
+    <select id="SADS10022" parameterClass="HashMap" resultClass="LinkedHashMap" >
+    	SELECT  *
+    	FROM	(
+			        SELECT  B.CRPN_SEQ_NO
+			            ,   B.BIZ_SEQ_NO
+			            ,   B.SMARK_BIZ_NM
+			            ,   B.SMARK_BIZ_NM_KEY
+			            ,   'DMST'              AS  BIZR_DIV
+			        FROM    TCMS_CF_AUTH_DMST_BIZR  A
+			            ,   TCMS_CF_DMST_BIZR       B
+			        WHERE   A.BIZ_SEQ_NO    =   B.BIZ_SEQ_NO
+			        AND     A.USER_ID       =   #user_id#
+			        UNION   ALL     ------------------------------------
+			        SELECT  B.CRPN_SEQ_NO
+			            ,   B.BIZ_SEQ_NO
+			            ,   B.SMARK_BIZ_NM
+			            ,   B.SMARK_BIZ_NM_KEY
+			            ,   'OVRS'              AS  BIZR_DIV
+			        FROM    TCMS_CF_AUTH_OVRS_BIZR  A
+			            ,   TCMS_CF_OVRS_BIZR       B
+			        WHERE   A.BIZ_SEQ_NO    =   B.BIZ_SEQ_NO
+			        AND     A.USER_ID       =   #user_id#
+			    )
+        ORDER BY
+                CRPN_SEQ_NO,  BIZ_SEQ_NO
+    </select>
+    <!-- 조회: 사용자로그인처리 > 사용자권한정보읽기 > 마이메뉴 -->
+    <select id="SADS10023" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT      A.MENU_SEQ_NO
+                ,   (
+                        SELECT  MENU_NM_KEY
+                        FROM    TCMS_CF_MENU
+                        WHERE   MENU_SEQ_NO =   A.MENU_SEQ_NO
+                    )   AS  MENU_NM_KEY
+                ,   (
+                        SELECT  URI
+                        FROM    TCMS_CF_MENU
+                        WHERE   MENU_SEQ_NO =   A.MENU_SEQ_NO
+                    )   AS  URI
+                ,   A.FST_RANK
+        FROM        TCMS_MY_MENU        A
+                ,   TCMS_CF_AUTH_MENU   B
+        WHERE       A.USER_ID       =   #user_id#
+        AND         A.USER_ID       =   B.USER_ID
+        AND         A.MENU_SEQ_NO   =   B.MENU_SEQ_NO
+        ORDER BY    A.FST_RANK, NVL(A.UPD_DATE, A.CRT_DATE) DESC, B.MENU_SEQ_NO
+    </select>
+    <!-- 조회: 사용자로그인처리 > 로그인후권한정보 > 메뉴목록(보고서) -->
+    <select id="SADS10024" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT  LEVEL
+            ,   SORT
+            ,   MENU_ID
+            ,   MENU_NM
+            ,   URI
+            ,   Case When LEVEL > 2 Then
+                    Sys_Connect_By_Path(MENU_NM_KEY, '>')
+                End                     AS  MENU_PATH
+            ,   MENU_SEQ_NO
+            ,   UP_MENU_ID
+            ,   Connect_By_Root MENU_ID AS  ROOT_ID
+        FROM
+        (
+            SELECT  *
+            FROM    TCMS_CF_MENU
+            WHERE   SYS_MGT_NO      =   #sys_mgt_no#
+            AND     MENU_SEQ_NO     IN
+                    (
+                        SELECT  MENU_SEQ_NO
+                        FROM    (
+                                    SELECT  *
+                                    FROM    TCMS_CF_MENU
+                                    WHERE   SYS_MGT_NO  =   #sys_mgt_no#
+                                )
+                        START WITH  MENU_SEQ_NO     IN
+                                    (
+                                        SELECT  MENU_SEQ_NO
+                                        FROM    TCMS_CF_AUTH_MENU
+                                        WHERE   USER_ID     =   #user_id#
+                                    )
+                        CONNECT BY  MENU_ID =   PRIOR   UP_MENU_ID
+                        UNION   -------------------------------------------
+                        SELECT  MENU_SEQ_NO
+                        FROM    (
+                                    SELECT  *
+                                    FROM    TCMS_CF_MENU
+                                    WHERE   SYS_MGT_NO  =   #sys_mgt_no#
+                                )
+                        START WITH  MENU_SEQ_NO     IN
+                                    (
+                                        SELECT  MENU_SEQ_NO
+                                        FROM    TCMS_CF_AUTH_MENU
+                                        WHERE   USER_ID     =   #user_id#
+                                    )
+                        CONNECT BY  PRIOR   MENU_ID =   UP_MENU_ID
+                    )
+        )
+        START WITH  UP_MENU_ID  =   'R00000000'
+        CONNECT BY  UP_MENU_ID  =   PRIOR   MENU_ID
+        ORDER SIBLINGS BY   LVL,    SORT
+    </select>
+
+    <!-- 수정: 사용자로그아웃처리 > 사용자접속이력 - 로그아웃 기록 -->
+    <update id="SADS10040" parameterClass="HashMap" >
+        UPDATE
+                TCMS_CF_USER_HIS
+        SET
+                LOGOUT_DATE     =   SysDate
+            ,   UPD_ID          =   #user_id#
+            ,   UPD_DATE        =   SysDate
+        WHERE
+                USER_ID         =   #user_id#
+        AND     ACS_DT          =   #acs_dt#
+        AND     ACS_DT_SEQ      =   #acs_dt_seq#
+    </update>
+
+
+    <!-- 조회: 사용자비밀번호확인 > 사용자정보 -->
+    <update id="SADS10050" parameterClass="HashMap" >
+        SELECT
+                USER_NM
+            ,   USER_PWD
+            ,   USE_YN
+            ,   CELL_NO
+            ,   MEMO
+        FROM
+                TCMS_CF_USER
+        WHERE
+                SYS_MGT_NO      =   #sys_mgt_no#
+        AND     USER_ID         =   #user_id#
+    </update>
+
+</sqlMap>

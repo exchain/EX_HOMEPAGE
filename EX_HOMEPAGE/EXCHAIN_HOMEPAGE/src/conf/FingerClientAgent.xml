@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <!-- Used By: com.finger.agent.client.EngineSocketInfo -->
+    <comment>EXCHAIN Client Agent Library Configuration</comment>
+    
+    <!-- ################################################# -->
+    <!-- # Configration Information                      # -->
+    <!-- ################################################# -->
+    
+    <!-- * Local 사용 확인을 위한 IP대역대    * -->
+    <entry key="_LOCAL_IP_RANGE">192.168.1</entry>
+    
+    <!-- * 운영/개발서버 구분     * -->
+    <!-- * 리얼 : REAL , 개발 : DEV * -->
+    <entry key="_REAL_DEV_SERVERS_CHK_">DEV</entry>    
+        
+    <!-- ********************************************** -->
+    <!-- * 통신시간제한(milliseconds) 설정 → 단위: 1000 = 1초   * -->
+    <!-- ********************************************** -->
+    <entry key="_MESSAGESEND_TIMEOUT">30000</entry>     <!-- 30초:전송 Timeout(공통) -->
+    <entry key="_COMMUNICATE_TIMEOUT">150000</entry>    <!-- 150초:Core⇔Hermes⇔VAN(Bank) -->
+    <entry key="_UI_RESPONSE_TIMEOUT">1200000</entry>   <!-- 20분:UXUI⇔Core -->
+    
+    
+    <!-- ################################################# -->
+    <!-- # FWF-Core Information                          # -->
+    <!-- ################################################# -->
+    
+    <!-- ********************************************** -->
+    <!-- * UX Server => FWF Server                    * -->
+    <!-- ********************************************** -->
+    <entry key="_FWF_APP_SVR_HOST_IP" >127.0.0.1</entry> <!-- FWF Svr -->
+    <entry key="_FWF_APP_SVR_PORT_NO" >45005</entry>
+
+    <!-- ********************************************** -->
+    <!-- * AWS Service                                * -->
+    <!-- ********************************************** -->
+    <entry key="_AWS_SES_SERVICE_EMAIL_FROM_" >no-reply@exchain.co.kr</entry>
+    
+    <!-- ********************************************** -->
+    <!-- * InsideBank Server Info					  * -->
+    <!-- ********************************************** -->
+    <entry key="_INSIDEBANK_SCD_INFO_" >http://211.232.21.107:9000/IFX1001</entry>
+    
+    <!-- ********************************************** -->
+    <!-- * 모바일 인증 URL                                * -->
+    <!-- ********************************************** -->
+    <entry key="_MOBILE_OK_POPUP_URL_" >http://dev.mobile-ok.com/popup/common/hscert.jsp</entry> <!-- 개발:dev.mobile-ok.com 운영:www.mobile-ok.com -->
+
+    <!-- ********************************************** -->
+    <!-- * SMS Service                                * -->
+    <!-- ********************************************** -->
+    <entry key="_KT_TCS_USER_ID_" >exchaindev</entry>     	<!-- 회원ID -->
+    <entry key="_KT_TCS_CALLBACK_NO_" >0269598750</entry>  <!-- 발신전화번호 -->
+    <entry key="_KT_TCS_SEND_COUNT_" >3</entry>  			<!-- 재발송횟수 -->   
+    
+</properties>

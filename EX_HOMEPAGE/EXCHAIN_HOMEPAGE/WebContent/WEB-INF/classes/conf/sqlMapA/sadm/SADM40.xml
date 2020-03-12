@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADM40">
+    <typeAlias alias="String" type="java.lang.String" />
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+    <!-- 조회: 스케줄목록조회 -->
+    <select id="SADM40010" parameterClass="HashMap" resultClass="LinkedHashMap">
+		SELECT  A.JOB_SEQ_NO
+			,	DECODE(A.EXEC_ST_CD, '30', 'ERR',  
+			 		DECODE(A.USE_YN, 'N', 'OFF', 'ON'))					AS SCH_STATE
+			,	A.TASK_ID
+			,	A.TASK_DIV
+			,	B.CODE_NM
+			,	A.EXEC_FO_CD
+			,	A.EXEC_ST_CD
+			,	DECODE(A.USE_YN 
+			          ,'Y', DECODE(A.EXEC_ST_CD,'00','대기','10','실행중','20','실행완료','25','실행SKIP','30','실행오류','90','실행불가','')
+					  , ''		   
+			 	) AS EXEC_ST_XX
+			,	A.EXEC_FO_CD
+			,	CASE WHEN A.EXEC_FO_CD = '10' THEN A.EXEC_RE_DTM 
+													||	'분'
+		             WHEN A.EXEC_FO_CD = '20' THEN TO_NUMBER(SUBSTR(A.SCHE_TIME, 3, 2))
+													||	'시간'
+													||	DECODE(SUBSTR(A.SCHE_TIME, 5, 2)
+																	, '00'
+																	, ''
+																	, ' '||	SUBSTR(A.SCHE_TIME, 5, 2)
+																		 ||	'분'
+															  )
+		                                      ELSE ''
+			    END EXEC_FO_DTM
+			,	DECODE(A.EXEC_DL_DTM, NULL, '', A.EXEC_DL_DTM || 'min') AS EXEC_DL_DTM	     			 
+			,	(   DECODE(A.EXEC_FO_CD,'10','반복실행','20','일정시간실행','')
+			 	) AS EXEC_FO_XX
+			,	A.USE_YN
+			,	DECODE(A.USE_YN,'Y',TO_CHAR(A.LST_EXEC_DATE , 'YYYY-MM-DD HH24:MI:SS'),'') AS LST_EXEC_DATE
+			,   DECODE(A.USE_YN,'Y',TO_CHAR(A.NEXT_EXEC_DATE, 'YYYY-MM-DD HH24:MI:SS'),'') AS NEXT_EXEC_DATE
+			,	'OFF'					AS GRD_BTN
+			,	A.RMK
+			,   DECODE(A.EXEC_FO_CD, '10', (TO_CHAR(TO_DATE(A.ACT_STR_DTM,'HH24MI'), 'HH24:MI') || ' ~ ' || 
+			    SUBSTR(A.ACT_END_DTM, 1, 2) || ':' || SUBSTR(A.ACT_END_DTM, 3)), '')	AS ACT_DTM
+		  FROM 	EX_SCHD			A
+			,	EX_COMMON_CODE	B
+		 WHERE	A.COIN_TYPE		    = #coin_type#
+		   AND 	A.TASK_ID			= B.CODE
+		   AND	B.CODE_GRP_ID   	= 'SCHDTASK'
+		<isNotEmpty prepend="" property="srch_task_nm">
+		   AND	B.CODE_NM LIKE '%' || #srch_task_nm# || '%'
+		</isNotEmpty>
+		<isNotEmpty prepend="" property="srch_task_div">
+		   AND	LOWER(A.TASK_DIV) LIKE '%'|| LOWER(#srch_task_div#) ||'%'
+		</isNotEmpty>
+		<isNotEqual property="srch_use_yn" compareValue="ALL">
+		   AND	A.USE_YN = #srch_use_yn#
+    	</isNotEqual>
+		<isNotEqual property="srch_exec_fo_cd" compareValue="ALL">
+		   AND	A.EXEC_FO_CD = #srch_exec_fo_cd#
+    	</isNotEqual>
+
+	  ORDER BY	A.FST_RANK
+    </select>
+
+    <!-- 조회: 스케줄정보상세조회 -->
+    <select id="SADM40020" parameterClass="HashMap" resultClass="LinkedHashMap">
+		SELECT  JOB_SEQ_NO
+			,	TASK_ID
+			,	(
+			 		SELECT CODE_NM
+			 		  FROM EX_COMMON_CODE
+			 		 WHERE CODE_GRP_ID = 'SCHDTASK'
+			 		   AND CODE = A.TASK_ID
+			 	) AS TASK_XX
+			,	TASK_DIV
+			,	PARAM
+			,	(  DECODE(A.EXEC_ST_CD,'00','대기','10','실행중','20','실행완료','25','실행SKIP','30','실행오류','90','실행불가','')
+			 	) AS EXEC_ST_NM
+			,	EXEC_ST_CD
+			,	EXEC_FO_CD
+			,	(  DECODE(A.EXEC_FO_CD,'10','반복실행','20','일정시간실행','')
+			 	) AS EXEC_FO_NM
+			,	EXEC_RE_DTM
+			,	EXEC_DL_DTM
+			,	SCHE_TIME
+			,   RMK
+			,	ACT_STR_DTM
+			,	ACT_END_DTM
+			,	USE_YN
+			,	TO_CHAR(LST_EXEC_DATE, 'YYYY-MM-DD HH24:MI:SS') AS LST_EXEC_DATE
+			,	TO_CHAR(NEXT_EXEC_DATE, 'YYYY-MM-DD HH24:MI:SS') AS NEXT_EXEC_DATE
+			,	FST_RANK
+		  FROM 	EX_SCHD	A
+		 WHERE	JOB_SEQ_NO = #job_seq_no#
+		 AND    COIN_TYPE  = #coin_type#
+    </select>
+
+    <!-- 수정: 스케줄정보수정 -->
+    <update id="SADM40021" parameterClass="HashMap">
+    	UPDATE	EX_SCHD
+    	   SET
+    	   		TASK_DIV		= #task_div#
+    	   	,	PARAM			= #param#
+    	   	,	EXEC_FO_CD		= #exec_fo_cd#
+    	   	,	EXEC_RE_DTM		= #exec_re_dtm#
+    	   	,	EXEC_DL_DTM		= #exec_dl_dtm#
+    	   	,	SCHE_TIME		= #sche_time#
+    	   	,	ACT_STR_DTM		= #act_str_dtm#
+    	   	,	ACT_END_DTM		= #act_end_dtm#
+    	   	,	USE_YN			= #use_yn#
+    	   	,   FST_RANK        = #fst_rank#
+    	   	,   RMK             = #rmk#
+    	   	,	UPD_ID			= #upd_id#
+    	   	,	UPD_DATE		= SYSDATE
+    	 WHERE	JOB_SEQ_NO		= #job_seq_no#
+    	 AND    COIN_TYPE       = #coin_type#
+    </update>
+
+    <!-- 조회: 스케줄실행이력조회 -->
+    <select id="SADM40030" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT  A.EXEC_DT
+			,	A.EXEC_DT_SEQ
+			,	B.TASK_ID
+			,	(
+					SELECT CODE_NM
+                      FROM EX_COMMON_CODE
+                     WHERE CODE_GRP_ID = 'SCHDTASK'
+                       AND CODE = B.TASK_ID
+					                     
+                ) AS TASK_XX
+			,	( DECODE(A.EXEC_ST_CD,'00','대기','10','실행중','20','실행완료','25','실행SKIP','30','실행오류','90','실행불가','')
+                ) AS JOB_EXEC_ST_XX
+			,	TO_CHAR(A.JOB_EXEC_S_DATE, 'YYYY-MM-DD HH24:MI:SS') AS JOB_EXEC_S_DATE
+			,	TO_CHAR(A.JOB_EXEC_E_DATE, 'YYYY-MM-DD HH24:MI:SS') AS JOB_EXEC_E_DATE
+			,   EXEC_SVR_IP
+          FROM  EX_SCHD_HIS    A
+			,	EX_SCHD        B
+
+         WHERE  A.JOB_SEQ_NO        = B.JOB_SEQ_NO
+           AND  A.JOB_SEQ_NO        = #job_seq_no#
+           AND  A.COIN_TYPE         = B.COIN_TYPE
+           AND  A.COIN_TYPE         = #coin_type#
+           AND  A.EXEC_DT   BETWEEN #date_prev# AND #date_next#
+
+        <isNotEqual property="job_exec_st" compareValue="ALL">
+           AND  A.JOB_EXEC_ST       = #job_exec_st#
+        </isNotEqual>
+         ORDER
+            BY  EXEC_DT DESC, JOB_EXEC_S_DATE DESC
+    </select>
+    
+
+    <!-- 조회: 스케줄TASK 목록조회 -->
+    <select id="SADM40050" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT  A.JOB_SEQ_NO            -- JOB일련번호
+            ,   A.COIN_TYPE             -- 코인유형
+            ,   A.TASK_ID               -- TASK-ID
+            ,   A.PARAM                 -- 파라미터
+            ,   A.EXEC_ST_CD            -- 실행상태코드
+            ,   A.EXEC_FO_CD            -- 실행방식코드
+            ,   A.ACT_STR_DTM           -- 가동시작시간
+            ,   A.ACT_END_DTM           -- 가동종료시간
+            ,   A.EXEC_RE_DTM           -- 실행반복시간
+            ,   A.EXEC_DL_DTM           -- 실행지연시간
+            ,   A.SCHE_TIME             -- 일정시각
+         FROM  	EX_SCHD          A
+        WHERE   A.USE_YN            =   'Y'
+        <isNotEmpty prepend="" property="coin_type">
+		  AND   A.COIN_TYPE         =   #coin_type#
+        </isNotEmpty>
+        <isNotEmpty prepend="" property="job_seq_no">
+		  AND  	A.JOB_SEQ_NO        =   #job_seq_no#
+        </isNotEmpty>
+     ORDER BY	A.JOB_SEQ_NO ASC
+    </select>
+    
+    <!-- 수정: 기초정보관리 > 스케쥴설정관리 > JOB실행상태 변경(10:실행중,20:실해완료,30:실행오류,90:실행불가) -->
+    <update id="SADM40050_1" parameterClass="HashMap" >
+        UPDATE
+                EX_SCHD
+        SET
+                EXEC_ST_CD          =   #exec_st_cd#
+        <isEqual property="exec_st_cd" compareValue="10">
+            ,   LST_EXEC_DATE       =   SysDate
+        </isEqual>
+        <isNotEmpty prepend="" property="next_exec_date">
+            ,   NEXT_EXEC_DATE      =   To_Date(#next_exec_date#, 'YYYYMMDDHH24MISS')
+        </isNotEmpty>
+        <isEqual property="exec_st_cd" compareValue="90">
+            ,   NEXT_EXEC_DATE      =   Null
+        </isEqual>
+            ,   UPD_ID              =   #user_id#
+            ,   UPD_DATE            =   SysDate
+        WHERE
+                JOB_SEQ_NO          =   #job_seq_no#
+ 		<isNotEmpty prepend="" property="coin_type">
+        AND     COIN_TYPE           =   #coin_type#
+        </isNotEmpty>
+    </update>
+    
+    <!-- 등록: 기초정보관리 > 스케쥴설정관리 > 스케쥴실행이력 등록 -->
+    <insert id="SADM40050_2" parameterClass="HashMap" >
+        INSERT  INTO
+                EX_SCHD_HIS
+                (   COIN_TYPE , JOB_SEQ_NO  , EXEC_DT  , EXEC_DT_SEQ  , JOB_EXEC_ST , JOB_EXEC_S_DATE, CRT_ID   , CRT_DATE, EXEC_SVR_IP
+                )
+        VALUES  (   #coin_type#, #job_seq_no#, #exec_dt#, #exec_dt_seq#, #exec_st_cd#, SysDate        , #user_id#, SysDate, #exec_svr_ip#
+                )
+    </insert>
+    
+    <!-- 수정: 기초정보관리 > 스케쥴설정관리 > 스케쥴실행이력 변경(완료) -->
+    <update id="SADM40050_3" parameterClass="HashMap" >
+        UPDATE
+                EX_SCHD_HIS
+        SET
+                JOB_EXEC_ST         =   #exec_st_cd#
+            ,   JOB_EXEC_E_DATE     =   SysDate
+            ,   UPD_ID              =   #user_id#
+            ,   UPD_DATE            =   SysDate
+        WHERE
+                JOB_SEQ_NO          =   #job_seq_no#
+        AND     EXEC_DT             =   #exec_dt#
+        AND     EXEC_DT_SEQ         =   #exec_dt_seq#
+        AND     COIN_TYPE           =   #coin_type#
+    </update>
+    
+    <!-- 조회: 기초정보관리 > 스케쥴설정관리 > 일자별순번 구하기 -->
+    <select id="SADM40050_9" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT
+                TO_CHAR(SysDate,'YYYYMMDD') AS  EXEC_DT
+            ,   NVL(MAX(EXEC_DT_SEQ),0) + 1 AS  EXEC_DT_SEQ
+        FROM
+                EX_SCHD_HIS
+        WHERE
+                JOB_SEQ_NO      =   #job_seq_no#
+        AND     COIN_TYPE       =   #coin_type#
+        AND     EXEC_DT         =   TO_CHAR(SysDate,'YYYYMMDD')
+    </select>
+    
+    
+    <!-- 조회: 실행 서버IP 조회 -->
+    <select id="SADM40100" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT  A.DUAL_EXEC_SVR_IP  -- 실행서버IP
+        FROM    EX_CF_SYS    A
+        WHERE   A.SYS_ID   =   #sys_id#
+    </select>
+
+    <!-- 수정: 스케줄 서버IP -->
+    <!-- 시스템별 IP가 다르면 안됨, 다를 경우 문제발생 -->
+    <update id="SADM40110" parameterClass="HashMap" >
+        UPDATE
+                EX_CF_SYS
+        SET
+                DUAL_EXEC_SVR_IP    =   #dual_exec_svr_ip#
+    </update>
+    
+
+</sqlMap>

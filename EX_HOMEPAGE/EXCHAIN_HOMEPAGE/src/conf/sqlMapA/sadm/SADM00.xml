@@ -1,0 +1,1085 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADM00">
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+    <!-- 조회: Server Environment Information -->
+    <select id="SADM00000" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT
+                #is_real_server#    AS  IS_REAL_SERVER
+              , #db_driver#         AS  DB_DRIVER
+              , #db_url#            AS  DB_URL
+              , #db_username#       AS  DB_USERNAME
+              , #db_password#       AS  DB_PASSWORD                
+        FROM
+                dual
+    </select>
+    
+ 	<!-- 조회: 마켓정책 -->
+    <select id="SADM00010" parameterClass="HashMap" resultClass="LinkedHashMap">
+       SELECT 	  MRKT_NM				-- 마켓명			
+				, MRKT_OPEN_HOUR		-- 마켓개장시간_HH	
+				, MRKT_CLOSE_HOUR		-- 마켓폐장시간_HH	
+				, BUY_ALLOW_MINUTE	    -- 구매허용시간_MM		
+				, OFFDAY_YN		        -- 공휴일거래여부	
+				, SELL_CANCEL_DAY		-- 판매자동취소일수	
+				, LAST_UPDR		        -- 최종갱신자		
+				, LAST_UPD_DTM		    -- 최종갱신일시			
+         FROM   EX_MARKET_POLICY     
+    </select>      
+
+    <!-- 조회: EX_COMMON_CODE - 공통코드 -->
+    <select id="SADM00110" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT
+                CODE_GRP_ID    AS GRP_CD
+            ,   CODE           AS COM_CD
+            ,   CODE_NM        AS COM_CD_NM
+            ,   ''             AS COM_CD_NM_KEY
+            ,   0              AS SORT_SEQ
+            ,   ''             AS STR_DT
+            ,   ''             AS END_DT
+            ,   ''             AS ATTR_1_CD
+            ,   ''             AS ATTR_2_CD
+            ,   ''             AS ATTR_3_CD
+            ,   ''             AS DEFAULT_YN
+            ,   CODE_SHRT_NM
+            ,   CODE_DESC
+            ,   USE_YN
+        FROM    EX_COMMON_CODE
+        WHERE   USE_YN =   'Y'
+        ORDER BY CODE_GRP_ID, CODE
+    </select>
+
+    <!-- 조회: 거래현황 -->
+    <select id="SADM00120" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+    /* IGNORE_LOG */
+		SELECT
+			T.* 
+			,ROUND((T.SELL_UNIT_PRICE_AVG / T.SELL_UNIT_PRICE_YESTERDAY) * 100) - 100  AS CHANGE_RATE
+		FROM (
+		    SELECT 
+		    	A.SELL_FINISH_DTM
+		        ,ROUND(AVG(A.SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE_AVG
+		        ,SUM(A.SELL_QTY) AS SELL_QTY_SUM
+		        ,SUM(A.SELL_AMT) AS SELL_AMT_SUM 
+		        ,(
+		        	SELECT 
+		        		ROUND(AVG(SELL_UNIT_PRICE)) 
+	        		FROM  EX_SELL_REG_INFO 
+	        		WHERE SELL_STATE = '100' 
+	        		AND   TRUNC(SELL_FINISH_DTM) = TO_DATE(A.SELL_FINISH_DTM -1)
+	        		AND   SYS_ID = #sys_id# 
+        			) AS SELL_UNIT_PRICE_YESTERDAY
+		    FROM (
+		      SELECT 
+		              TRUNC(SELL_FINISH_DTM) AS SELL_FINISH_DTM 
+		           ,  SELL_UNIT_PRICE
+		           ,  SELL_QTY
+		           ,  SELL_AMT
+		      FROM    EX_SELL_REG_INFO
+		      WHERE   SELL_STATE = '100'        -- 판매완료
+		      AND     TRUNC(SELL_FINISH_DTM) > TRUNC(SYSDATE-30)  -- 30일이전데이터부터
+		      AND     SYS_ID = #sys_id#
+		    ) A
+		    GROUP BY A.SELL_FINISH_DTM
+		    ORDER BY A.SELL_FINISH_DTM DESC
+		)T
+		WHERE ROWNUM <= 30
+     ]]> 		        
+    </select>
+
+    <!-- 조회: BOS 판매목록조회 -->
+    <select id="SADM00130" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+       
+        /* IGNORE_LOG */ 
+		WITH UP_PRICE AS (
+			SELECT 
+				*
+			FROM (
+				SELECT DISTINCT 
+					SELL_UNIT_PRICE AS SELL_UNIT_PRICE_STEP 
+				FROM EX_SELL_REG_INFO 
+				WHERE
+				SYS_ID = #sys_id#
+					AND SELL_UNIT_PRICE >= (SELECT MIN(SELL_UNIT_PRICE) FROM EX_SELL_REG_INFO WHERE SYS_ID = #sys_id# AND SELL_STATE = '000' AND PV_SELL_YN = 'N')
+					AND (
+              			SELL_STATE IN( '000', '010')
+              			OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+					)
+					AND PV_SELL_YN = 'N'  
+					ORDER BY SELL_UNIT_PRICE
+				)
+			WHERE ROWNUM <= 6
+		),
+		DOWN_PRICE AS (
+	 			SELECT 
+	     			*
+	 			FROM (
+	   			SELECT DISTINCT 
+	       			SELL_UNIT_PRICE AS SELL_UNIT_PRICE_STEP
+	   			FROM EX_SELL_REG_INFO 
+	   			WHERE
+	       			SYS_ID = #sys_id#
+	       			AND SELL_UNIT_PRICE <= (SELECT MIN(SELL_UNIT_PRICE) FROM EX_SELL_REG_INFO WHERE SYS_ID = #sys_id# AND SELL_STATE = '000' AND PV_SELL_YN = 'N')
+	       			AND (
+              			SELL_STATE IN( '000', '010')
+              			OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+	       			) 
+	       			AND PV_SELL_YN = 'N' 
+	   			ORDER BY SELL_UNIT_PRICE DESC
+	 			)
+	 			WHERE ROWNUM <= 5
+		),
+		UP_STEP AS (
+			SELECT (
+	     			SELECT 
+	         			MAX(SELL_UNIT_PRICE_STEP) + (T1.COIN_SELL_UNIT_AMT * T2.RI)
+	     			FROM UP_PRICE
+	  			) AS SELL_UNIT_PRICE_STEP
+	   		FROM EX_COIN_POLICY T1
+	   		LEFT JOIN (
+	   			SELECT 
+	           		LEVEL-1 AS RI
+	       		FROM DUAL
+	       		CONNECT BY LEVEL -1 < 6
+	  			)T2 ON 1=1
+	   		WHERE T1.SYS_ID = #sys_id#
+		),
+		DOWN_STEP AS (
+			SELECT (
+	     			SELECT 
+	         			MIN(SELL_UNIT_PRICE_STEP) - (T1.COIN_SELL_UNIT_AMT * T2.RI)
+	     			FROM DOWN_PRICE
+	  			) AS SELL_UNIT_PRICE_STEP
+	   		FROM EX_COIN_POLICY T1
+	   		LEFT JOIN (
+	   			SELECT 
+	           		LEVEL-1 AS RI
+	       		FROM DUAL
+	       		CONNECT BY LEVEL -1 <= 5
+	   		)T2 ON 1=1
+	   		WHERE T1.SYS_ID = #sys_id#
+		),
+		UP_VIEW AS (
+			SELECT 
+				A.*
+				, CASE WHEN A.SELL_UNIT_PRICE_STEP = (SELECT MIN(SELL_UNIT_PRICE_STEP) FROM UP_PRICE )
+	 					THEN 'POINT'
+	 					ELSE 'UP' END 
+				AS PART
+			FROM (
+				SELECT
+					*
+				FROM ( 
+	 				SELECT 
+	 					*
+	 				FROM UP_PRICE
+	 				UNION 
+	 				SELECT 
+	 					*
+	 				FROM UP_STEP
+ 				)
+ 				ORDER BY SELL_UNIT_PRICE_STEP
+			) A
+		WHERE ROWNUM <= 6
+		),
+		DOWN_VIEW AS (
+			SELECT 
+				A.*
+				, CASE WHEN A.SELL_UNIT_PRICE_STEP = (SELECT MAX(SELL_UNIT_PRICE_STEP) FROM DOWN_PRICE )
+					THEN 'POINT'
+	 					ELSE 'DOWN' END 
+				AS PART
+			FROM (
+				SELECT
+					*
+				FROM (
+	 				SELECT 
+	 					*
+	 				FROM DOWN_PRICE
+					UNION 
+					SELECT 
+	 					*
+	 				FROM DOWN_STEP
+				)
+				ORDER BY SELL_UNIT_PRICE_STEP DESC
+			)A
+			WHERE ROWNUM <= 5
+		)
+		SELECT 
+			B.SYS_ID
+			,A.SELL_UNIT_PRICE_STEP
+			,A.PART
+			,B.SELL_REG_SEQNO
+			,B.SELL_CUST_SEQNO
+			,CASE WHEN B.SELL_STATE = '000'
+				THEN B.SELL_QTY
+			    ELSE 0 END
+				AS SELL_ING_QTY
+			,CASE WHEN NOT B.SELL_STATE = '000'
+			  THEN B.SELL_QTY
+			  ELSE 0 END
+			AS SELL_END_QTY  
+			,B.SELL_QTY
+			,B.SELL_AMT
+			,B.SELL_REG_DTM
+			,B.FEE_BD_GB
+		FROM (
+	 			SELECT * FROM UP_VIEW
+	 			UNION
+	 			SELECT * FROM DOWN_VIEW
+		)A
+		LEFT JOIN EX_SELL_REG_INFO B ON
+			A.SELL_UNIT_PRICE_STEP = B.SELL_UNIT_PRICE 
+	   		AND (
+                 SELL_STATE IN( '000', '010')
+                 OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+	  			) 
+	   		AND SYS_ID = #sys_id#
+	   		AND B.PV_SELL_YN = 'N'
+		ORDER BY A.SELL_UNIT_PRICE_STEP DESC , B.SELL_QTY DESC , B.SELL_REG_DTM
+		]]>
+    </select>
+
+	<!-- 조회: ETH 판매목록조회 -->
+    <select id="SADM00130_ETH" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+       
+        /* IGNORE_LOG */ 
+		WITH UP_PRICE AS (
+			SELECT 
+				*
+			FROM (
+				SELECT DISTINCT 
+					SELL_UNIT_PRICE AS SELL_UNIT_PRICE_STEP 
+				FROM EX_ETH_SELL_REG_INFO 
+				WHERE
+				SYS_ID = #sys_id#
+					AND SELL_UNIT_PRICE >= (SELECT MIN(SELL_UNIT_PRICE) FROM EX_ETH_SELL_REG_INFO WHERE SYS_ID = #sys_id# AND SELL_STATE = '000' AND PV_SELL_YN = 'N')
+					AND (
+              			SELL_STATE IN( '000', '010')
+              			OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+					)
+					AND PV_SELL_YN = 'N'  
+					ORDER BY SELL_UNIT_PRICE
+				)
+			WHERE ROWNUM <= 6
+		),
+		DOWN_PRICE AS (
+	 			SELECT 
+	     			*
+	 			FROM (
+	   			SELECT DISTINCT 
+	       			SELL_UNIT_PRICE AS SELL_UNIT_PRICE_STEP
+	   			FROM EX_ETH_SELL_REG_INFO 
+	   			WHERE
+	       			SYS_ID = #sys_id#
+	       			AND SELL_UNIT_PRICE <= (SELECT MIN(SELL_UNIT_PRICE) FROM EX_ETH_SELL_REG_INFO WHERE SYS_ID = #sys_id# AND SELL_STATE = '000' AND PV_SELL_YN = 'N')
+	       			AND (
+              			SELL_STATE IN( '000', '010')
+              			OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+	       			) 
+	       			AND PV_SELL_YN = 'N' 
+	   			ORDER BY SELL_UNIT_PRICE DESC
+	 			)
+	 			WHERE ROWNUM <= 5
+		),
+		UP_STEP AS (
+			SELECT (
+	     			SELECT 
+	         			MAX(SELL_UNIT_PRICE_STEP) + (T1.COIN_SELL_UNIT_AMT * T2.RI)
+	     			FROM UP_PRICE
+	  			) AS SELL_UNIT_PRICE_STEP
+	   		FROM EX_COIN_POLICY T1
+	   		LEFT JOIN (
+	   			SELECT 
+	           		LEVEL-1 AS RI
+	       		FROM DUAL
+	       		CONNECT BY LEVEL -1 < 6
+	  			)T2 ON 1=1
+	   		WHERE T1.SYS_ID = #sys_id#
+		),
+		DOWN_STEP AS (
+			SELECT (
+	     			SELECT 
+	         			MIN(SELL_UNIT_PRICE_STEP) - (T1.COIN_SELL_UNIT_AMT * T2.RI)
+	     			FROM DOWN_PRICE
+	  			) AS SELL_UNIT_PRICE_STEP
+	   		FROM EX_COIN_POLICY T1
+	   		LEFT JOIN (
+	   			SELECT 
+	           		LEVEL-1 AS RI
+	       		FROM DUAL
+	       		CONNECT BY LEVEL -1 <= 5
+	   		)T2 ON 1=1
+	   		WHERE T1.SYS_ID = #sys_id#
+		),
+		UP_VIEW AS (
+			SELECT 
+				A.*
+				, CASE WHEN A.SELL_UNIT_PRICE_STEP = (SELECT MIN(SELL_UNIT_PRICE_STEP) FROM UP_PRICE )
+	 					THEN 'POINT'
+	 					ELSE 'UP' END 
+				AS PART
+			FROM (
+				SELECT
+					*
+				FROM ( 
+	 				SELECT 
+	 					*
+	 				FROM UP_PRICE
+	 				UNION 
+	 				SELECT 
+	 					*
+	 				FROM UP_STEP
+ 				)
+ 				ORDER BY SELL_UNIT_PRICE_STEP
+			) A
+		WHERE ROWNUM <= 6
+		),
+		DOWN_VIEW AS (
+			SELECT 
+				A.*
+				, CASE WHEN A.SELL_UNIT_PRICE_STEP = (SELECT MAX(SELL_UNIT_PRICE_STEP) FROM DOWN_PRICE )
+					THEN 'POINT'
+	 					ELSE 'DOWN' END 
+				AS PART
+			FROM (
+				SELECT
+					*
+				FROM (
+	 				SELECT 
+	 					*
+	 				FROM DOWN_PRICE
+					UNION 
+					SELECT 
+	 					*
+	 				FROM DOWN_STEP
+				)
+				ORDER BY SELL_UNIT_PRICE_STEP DESC
+			)A
+			WHERE ROWNUM <= 5
+		)
+		SELECT 
+			B.SYS_ID
+			,A.SELL_UNIT_PRICE_STEP
+			,A.PART
+			,B.SELL_REG_SEQNO
+			,B.SELL_CUST_SEQNO
+			,CASE WHEN B.SELL_STATE = '000'
+				THEN B.SELL_QTY
+			    ELSE 0 END
+				AS SELL_ING_QTY
+			,CASE WHEN NOT B.SELL_STATE = '000'
+			  THEN B.SELL_QTY
+			  ELSE 0 END
+			AS SELL_END_QTY  
+			,B.SELL_QTY
+			,B.SELL_AMT
+			,B.SELL_REG_DTM
+			,B.FEE_BD_GB
+		FROM (
+	 			SELECT * FROM UP_VIEW
+	 			UNION
+	 			SELECT * FROM DOWN_VIEW
+		)A
+		LEFT JOIN EX_ETH_SELL_REG_INFO B ON
+			A.SELL_UNIT_PRICE_STEP = B.SELL_UNIT_PRICE 
+	   		AND (
+                 SELL_STATE IN( '000', '010')
+                 OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+	  			) 
+	   		AND SYS_ID = #sys_id#
+	   		AND B.PV_SELL_YN = 'N'
+		ORDER BY A.SELL_UNIT_PRICE_STEP DESC , B.SELL_QTY DESC , B.SELL_REG_DTM
+		]]>
+    </select>
+    
+    <!-- 조회: ERC20 판매목록조회 -->
+    <select id="SADM00130_ERC20" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+       
+        /* IGNORE_LOG */ 
+		WITH UP_PRICE AS (
+			SELECT 
+				*
+			FROM (
+				SELECT DISTINCT 
+					SELL_UNIT_PRICE AS SELL_UNIT_PRICE_STEP 
+				FROM EX_ERC20_SELL_REG_INFO 
+				WHERE
+				SYS_ID = #sys_id#
+					AND SELL_UNIT_PRICE >= (SELECT MIN(SELL_UNIT_PRICE) FROM EX_ERC20_SELL_REG_INFO WHERE SYS_ID = #sys_id# AND SELL_STATE = '000' AND PV_SELL_YN = 'N')
+					AND (
+              			SELL_STATE IN( '000', '010')
+              			OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+					)
+					AND PV_SELL_YN = 'N'  
+					ORDER BY SELL_UNIT_PRICE
+				)
+			WHERE ROWNUM <= 6
+		),
+		DOWN_PRICE AS (
+	 			SELECT 
+	     			*
+	 			FROM (
+	   			SELECT DISTINCT 
+	       			SELL_UNIT_PRICE AS SELL_UNIT_PRICE_STEP
+	   			FROM EX_ERC20_SELL_REG_INFO 
+	   			WHERE
+	       			SYS_ID = #sys_id#
+	       			AND SELL_UNIT_PRICE <= (SELECT MIN(SELL_UNIT_PRICE) FROM EX_ERC20_SELL_REG_INFO WHERE SYS_ID = #sys_id# AND SELL_STATE = '000' AND PV_SELL_YN = 'N')
+	       			AND (
+              			SELL_STATE IN( '000', '010')
+              			OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+	       			) 
+	       			AND PV_SELL_YN = 'N' 
+	   			ORDER BY SELL_UNIT_PRICE DESC
+	 			)
+	 			WHERE ROWNUM <= 5
+		),
+		UP_STEP AS (
+			SELECT (
+	     			SELECT 
+	         			MAX(SELL_UNIT_PRICE_STEP) + (T1.COIN_SELL_UNIT_AMT * T2.RI)
+	     			FROM UP_PRICE
+	  			) AS SELL_UNIT_PRICE_STEP
+	   		FROM EX_COIN_POLICY T1
+	   		LEFT JOIN (
+	   			SELECT 
+	           		LEVEL-1 AS RI
+	       		FROM DUAL
+	       		CONNECT BY LEVEL -1 < 6
+	  			)T2 ON 1=1
+	   		WHERE T1.SYS_ID = #sys_id#
+		),
+		DOWN_STEP AS (
+			SELECT (
+	     			SELECT 
+	         			MIN(SELL_UNIT_PRICE_STEP) - (T1.COIN_SELL_UNIT_AMT * T2.RI)
+	     			FROM DOWN_PRICE
+	  			) AS SELL_UNIT_PRICE_STEP
+	   		FROM EX_COIN_POLICY T1
+	   		LEFT JOIN (
+	   			SELECT 
+	           		LEVEL-1 AS RI
+	       		FROM DUAL
+	       		CONNECT BY LEVEL -1 <= 5
+	   		)T2 ON 1=1
+	   		WHERE T1.SYS_ID = #sys_id#
+		),
+		UP_VIEW AS (
+			SELECT 
+				A.*
+				, CASE WHEN A.SELL_UNIT_PRICE_STEP = (SELECT MIN(SELL_UNIT_PRICE_STEP) FROM UP_PRICE )
+	 					THEN 'POINT'
+	 					ELSE 'UP' END 
+				AS PART
+			FROM (
+				SELECT
+					*
+				FROM ( 
+	 				SELECT 
+	 					*
+	 				FROM UP_PRICE
+	 				UNION 
+	 				SELECT 
+	 					*
+	 				FROM UP_STEP
+ 				)
+ 				ORDER BY SELL_UNIT_PRICE_STEP
+			) A
+		WHERE ROWNUM <= 6
+		),
+		DOWN_VIEW AS (
+			SELECT 
+				A.*
+				, CASE WHEN A.SELL_UNIT_PRICE_STEP = (SELECT MAX(SELL_UNIT_PRICE_STEP) FROM DOWN_PRICE )
+					THEN 'POINT'
+	 					ELSE 'DOWN' END 
+				AS PART
+			FROM (
+				SELECT
+					*
+				FROM (
+	 				SELECT 
+	 					*
+	 				FROM DOWN_PRICE
+					UNION 
+					SELECT 
+	 					*
+	 				FROM DOWN_STEP
+				)
+				ORDER BY SELL_UNIT_PRICE_STEP DESC
+			)A
+			WHERE ROWNUM <= 5
+		)
+		SELECT 
+			B.SYS_ID
+			,A.SELL_UNIT_PRICE_STEP
+			,A.PART
+			,B.SELL_REG_SEQNO
+			,B.SELL_CUST_SEQNO
+			,CASE WHEN B.SELL_STATE = '000'
+				THEN B.SELL_QTY
+			    ELSE 0 END
+				AS SELL_ING_QTY
+			,CASE WHEN NOT B.SELL_STATE = '000'
+			  THEN B.SELL_QTY
+			  ELSE 0 END
+			AS SELL_END_QTY  
+			,B.SELL_QTY
+			,B.SELL_AMT
+			,B.SELL_REG_DTM
+			,B.FEE_BD_GB
+		FROM (
+	 			SELECT * FROM UP_VIEW
+	 			UNION
+	 			SELECT * FROM DOWN_VIEW
+		)A
+		LEFT JOIN EX_ERC20_SELL_REG_INFO B ON
+			A.SELL_UNIT_PRICE_STEP = B.SELL_UNIT_PRICE 
+	   		AND (
+                 SELL_STATE IN( '000', '010')
+                 OR (SELL_STATE = '100' AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE)) 
+	  			) 
+	   		AND SYS_ID = #sys_id#
+	   		AND B.PV_SELL_YN = 'N'
+		ORDER BY A.SELL_UNIT_PRICE_STEP DESC , B.SELL_QTY DESC , B.SELL_REG_DTM
+		]]>
+    </select>
+    
+    <!-- 조회: BOS 일별 챠트조회 -->
+    <select id="SADM00140" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+    
+    /* IGNORE_LOG */
+    	/** 일별 평균시세 가져오기 */
+		SELECT 
+			T1.*
+		    ,T2.*
+		    ,ROUND((T1.SELL_UNIT_PRICE_AVG / T2.SELL_UNIT_PRICE_YESTERDAY) * 100) - 100  AS CHANGE_RATE
+		FROM 
+		(
+        	
+			SELECT 
+				A.SYS_ID 
+				,A.SELL_FINISH_DTM
+				,SUM(A.SELL_QTY) AS SELL_QTY_SUM
+				,ROUND(AVG(A.SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE_AVG
+				,SUM(A.SELL_AMT) AS SELL_AMT_SUM
+			FROM (
+				SELECT 
+				    SYS_ID
+				    ,TRUNC(SELL_FINISH_DTM) AS SELL_FINISH_DTM
+				    ,SELL_QTY
+				    ,SELL_UNIT_PRICE
+				    ,SELL_AMT
+				FROM EX_SELL_REG_INFO
+		    WHERE
+		        SYS_ID = #sys_id#
+		        AND SELL_STATE = '100'
+		        AND TRUNC(SELL_FINISH_DTM) BETWEEN ADD_MONTHS(TRUNC(SYSDATE+1) , -1) AND TRUNC(TO_DATE(SYSDATE))
+			) A
+			GROUP BY A.SYS_ID , A.SELL_FINISH_DTM 
+			ORDER BY A.SELL_FINISH_DTM DESC
+		) T1
+		RIGHT JOIN (
+		    SELECT 
+		    	DAYS
+		    	,TO_CHAR(DAYS , 'MM/dd') AS DAYS_TEXT
+		    	,TO_CHAR(DAYS , 'yyyy.MM.dd') AS DAYS_TEXT_FULL
+              	,(
+                	SELECT SELL_UNIT_PRICE FROM (
+                      SELECT 
+                          TRUNC(SELL_FINISH_DTM) AS SELL_FINISH_DTM
+                          ,ROUND(AVG(SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE
+                      FROM EX_SELL_REG_INFO
+                      WHERE SYS_ID = #sys_id#
+                      	AND SELL_STATE = '100'
+                      GROUP BY TRUNC(SELL_FINISH_DTM)
+                      ORDER BY TRUNC(SELL_FINISH_DTM) DESC
+                    )
+                    WHERE SELL_FINISH_DTM < DAYS
+                    AND ROWNUM = 1
+                ) AS SELL_UNIT_PRICE_YESTERDAY
+		    FROM (
+		        SELECT
+		        TRUNC(TO_DATE(SYSDATE)) - (LEVEL-1) as DAYS
+		        FROM DUAL
+		        CONNECT BY LEVEL-1  <= TRUNC(TO_DATE(SYSDATE)) - ADD_MONTHS(TRUNC(SYSDATE+1) , -1)
+		    )
+		) T2 ON T1.SELL_FINISH_DTM = T2.DAYS
+		
+		ORDER BY T2.DAYS 
+      
+        ]]> 		        
+    </select>
+    
+    <!-- 조회: ETH 일별 챠트조회 -->
+    <select id="SADM00140_ETH" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+    
+    /* IGNORE_LOG */
+    	/** 일별 평균시세 가져오기 */
+		SELECT 
+			T1.*
+		    ,T2.*
+		    ,ROUND((T1.SELL_UNIT_PRICE_AVG / T2.SELL_UNIT_PRICE_YESTERDAY) * 100) - 100  AS CHANGE_RATE
+		FROM 
+		(
+        	
+			SELECT 
+				A.SYS_ID 
+				,A.SELL_FINISH_DTM
+				,SUM(A.SELL_QTY) AS SELL_QTY_SUM
+				,ROUND(AVG(A.SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE_AVG
+				,SUM(A.SELL_AMT) AS SELL_AMT_SUM
+			FROM (
+				SELECT 
+				    SYS_ID
+				    ,TRUNC(SELL_FINISH_DTM) AS SELL_FINISH_DTM 
+				    ,SELL_QTY
+				    ,SELL_UNIT_PRICE
+				    ,SELL_AMT
+				FROM EX_ETH_SELL_REG_INFO
+		    WHERE
+		        SYS_ID = #sys_id#
+		        AND SELL_STATE = '100'
+		        AND TRUNC(SELL_FINISH_DTM) BETWEEN ADD_MONTHS(TRUNC(SYSDATE+1) , -1) AND TRUNC(TO_DATE(SYSDATE))
+			) A
+			GROUP BY A.SYS_ID , A.SELL_FINISH_DTM 
+			ORDER BY A.SELL_FINISH_DTM DESC
+		) T1
+		RIGHT JOIN (
+		    SELECT 
+		    	DAYS
+		    	,TO_CHAR(DAYS , 'MM/dd') AS DAYS_TEXT
+		    	,TO_CHAR(DAYS , 'yyyy.MM.dd') AS DAYS_TEXT_FULL
+              	,(
+                	SELECT SELL_UNIT_PRICE FROM (
+                      SELECT 
+                          TRUNC(SELL_FINISH_DTM) AS SELL_FINISH_DTM
+                          ,ROUND(AVG(SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE
+                      FROM EX_ETH_SELL_REG_INFO
+                      WHERE SYS_ID = #sys_id#
+                      	AND SELL_STATE = '100'
+                      GROUP BY TRUNC(SELL_FINISH_DTM)
+                      ORDER BY TRUNC(SELL_FINISH_DTM) DESC
+                    )
+                    WHERE SELL_FINISH_DTM < DAYS
+                    AND ROWNUM = 1
+                ) AS SELL_UNIT_PRICE_YESTERDAY
+		    FROM (
+		        SELECT
+		        TRUNC(TO_DATE(SYSDATE)) - (LEVEL-1) as DAYS
+		        FROM DUAL
+		        CONNECT BY LEVEL-1  <= TRUNC(TO_DATE(SYSDATE)) - ADD_MONTHS(TRUNC(SYSDATE+1) , -1)
+		    )
+		) T2 ON T1.SELL_FINISH_DTM = T2.DAYS
+		
+		ORDER BY T2.DAYS 
+      
+        ]]> 		        
+    </select>
+    
+    <!-- 조회: ERC20 일별 챠트조회 -->
+    <select id="SADM00140_ERC20" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+    
+    /* IGNORE_LOG */
+    	/** 일별 평균시세 가져오기 */
+		SELECT 
+			T1.*
+		    ,T2.*
+		    ,ROUND((T1.SELL_UNIT_PRICE_AVG / T2.SELL_UNIT_PRICE_YESTERDAY) * 100) - 100  AS CHANGE_RATE
+		FROM 
+		(
+        	
+			SELECT 
+				A.SYS_ID 
+				,A.SELL_FINISH_DTM
+				,SUM(A.SELL_QTY) AS SELL_QTY_SUM
+				,ROUND(AVG(A.SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE_AVG
+				,SUM(A.SELL_AMT) AS SELL_AMT_SUM
+			FROM (
+				SELECT 
+				    SYS_ID
+				    ,TRUNC(SELL_FINISH_DTM) AS SELL_FINISH_DTM
+				    ,SELL_QTY
+				    ,SELL_UNIT_PRICE
+				    ,SELL_AMT
+				FROM EX_ERC20_SELL_REG_INFO
+		    WHERE
+		        SYS_ID = #sys_id#
+		        AND SELL_STATE = '100'
+		        AND TRUNC(SELL_FINISH_DTM) BETWEEN ADD_MONTHS(TRUNC(SYSDATE+1) , -1) AND TRUNC(TO_DATE(SYSDATE))
+			) A
+			GROUP BY A.SYS_ID , A.SELL_FINISH_DTM 
+			ORDER BY A.SELL_FINISH_DTM DESC
+		) T1
+		RIGHT JOIN (
+		    SELECT 
+		    	DAYS
+		    	,TO_CHAR(DAYS , 'MM/dd') AS DAYS_TEXT
+		    	,TO_CHAR(DAYS , 'yyyy.MM.dd') AS DAYS_TEXT_FULL
+              	,(
+                	SELECT SELL_UNIT_PRICE FROM (
+                      SELECT 
+                          TRUNC(SELL_FINISH_DTM) AS SELL_FINISH_DTM
+                          ,ROUND(AVG(SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE
+                      FROM EX_ERC20_SELL_REG_INFO
+                      WHERE SYS_ID = #sys_id#
+                      	AND SELL_STATE = '100'
+                      GROUP BY TRUNC(SELL_FINISH_DTM)
+                      ORDER BY TRUNC(SELL_FINISH_DTM) DESC
+                    )
+                    WHERE SELL_FINISH_DTM < DAYS
+                    AND ROWNUM = 1
+                ) AS SELL_UNIT_PRICE_YESTERDAY
+		    FROM (
+		        SELECT
+		        TRUNC(TO_DATE(SYSDATE)) - (LEVEL-1) as DAYS
+		        FROM DUAL
+		        CONNECT BY LEVEL-1  <= TRUNC(TO_DATE(SYSDATE)) - ADD_MONTHS(TRUNC(SYSDATE+1) , -1)
+		    )
+		) T2 ON T1.SELL_FINISH_DTM = T2.DAYS
+		
+		ORDER BY T2.DAYS 
+      
+        ]]> 		        
+    </select>
+    
+    <!-- 조회: 챠트조회 -->
+    <select id="SADM00150" parameterClass="HashMap" resultClass="LinkedHashMap">
+    <![CDATA[
+    
+    	/* IGNORE_LOG */
+    	/** 시간별 평균시세 가져오기 */
+		SELECT 
+			T1.*
+		    ,T2.*
+		    ,ROUND((T1.SELL_UNIT_PRICE_AVG / T1.SELL_UNIT_PRICE_YESTERDAY) * 100) - 100  AS CHANGE_RATE
+		FROM 
+		(
+			SELECT 
+				A.SYS_ID 
+				,A.SELL_FINISH_DTM
+				,SUM(A.SELL_QTY) AS SELL_QTY_SUM
+				,ROUND(AVG(A.SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE_AVG
+				,SUM(A.SELL_AMT) AS SELL_AMT_SUM
+	            ,(
+                	SELECT SELL_UNIT_PRICE FROM (
+                      SELECT 
+                          TRUNC(SELL_FINISH_DTM , 'hh24') AS SELL_FINISH_DTM
+                          ,ROUND(AVG(SELL_UNIT_PRICE)) AS SELL_UNIT_PRICE
+                      FROM EX_SELL_REG_INFO
+                      WHERE SYS_ID = #sys_id#
+                      	AND SELL_STATE = '100'
+                      GROUP BY TRUNC(SELL_FINISH_DTM , 'hh24')
+                      ORDER BY TRUNC(SELL_FINISH_DTM , 'hh24') DESC
+                    )
+                    WHERE SELL_FINISH_DTM < A.SELL_FINISH_DTM
+                    AND ROWNUM = 1
+                ) AS SELL_UNIT_PRICE_YESTERDAY
+			FROM (
+				SELECT 
+				    SYS_ID
+				    ,TRUNC(SELL_FINISH_DTM , 'hh24') AS SELL_FINISH_DTM
+				    ,SELL_QTY
+				    ,SELL_UNIT_PRICE
+				    ,SELL_AMT
+				FROM EX_SELL_REG_INFO
+                WHERE
+                    SYS_ID = #sys_id#
+                    AND SELL_STATE = '100'
+                    AND TRUNC(SELL_FINISH_DTM) = TRUNC(SYSDATE-3)
+                ) A
+			GROUP BY A.SYS_ID , A.SELL_FINISH_DTM 
+			ORDER BY A.SELL_FINISH_DTM DESC
+		) T1
+		RIGHT JOIN (
+		    SELECT 
+                DAYS
+                ,TO_CHAR(DAYS , 'hh24') AS DAYS_TEXT
+                ,TO_CHAR(DAYS , 'yyyy.MM.dd hh24') AS DAYS_TEXT_FULL
+            FROM (
+                SELECT
+                TRUNC(SYSDATE , 'hh24') - (LEVEL-1)/24 as DAYS
+                FROM DUAL
+                CONNECT BY LEVEL-1  <= (TRUNC(SYSDATE , 'hh24') - TRUNC(SYSDATE)) * 24   
+            )
+		) T2 ON T1.SELL_FINISH_DTM = T2.DAYS
+		
+		ORDER BY T2.DAYS 
+      
+        ]]> 		        
+    </select>
+
+    <!-- 수정: 스케줄 서버IP -->
+    <!-- 시스템별 IP가 다르면 안됨, 다를 경우 문제발생 -->
+    <update id="SADM00200" parameterClass="HashMap" >
+        UPDATE
+                EX_SYS_INFO
+        SET
+                DUAL_EXEC_SVR_IP    =   #dual_exec_svr_ip#
+    </update>
+    
+    <!-- 등록: 시스템 거래 로그 생성 -->
+    <insert id="SADM00300" parameterClass="HashMap">
+    
+		INSERT INTO EX_SYS_TRNS_LOG
+			(
+			    EXEC_DATE       -- 실행일시
+			 ,  SEQ_NO          -- 일련번호
+			 ,  ACS_IP          -- 접속IP
+			 ,  CRT_ID          -- 생성자
+			 ,  EXEC_DT         -- 실행일자
+			 ,  PGM_ID          -- 프로그램ID
+			 ,  PGM_NM          -- 프로그램명
+			 ,  PAGE_ID         -- 화면ID
+			 ,  CLASS_NM        -- CLASS명
+			 ,  METHOD_NM       -- METHOD명
+			 ,  TRNS_DIV        -- 거래구분(시스템:S,업무:T)
+			 ,  SCS_YN          -- 성공여부
+			 ,  EXEC_STR_DTM    -- 실행시작시간
+			 ,  EXEC_END_DTM    -- 실행종료시간
+			 ,  EXEC_DTM        -- 실행된 시간
+			 ,  SYS_ID          -- 시스템ID
+			 ,  CRT_DATE        -- 생성 일시
+			 )
+		VALUES
+		     (
+                #exec_date#
+             ,  #seq_no#
+             ,  #acs_ip#
+             ,  #crt_id#
+             ,  #exec_dt#
+             ,  #pgm_id#
+             ,  #pgm_nm#
+             ,  #page_id#
+             ,  #class_nm#
+             ,  #method_nm#
+             ,  #trns_div#
+             ,  #scs_yn#
+             ,  #exec_str_dtm#
+             ,  #exec_end_dtm#
+             ,  #exec_dtm#
+             ,  #sys_id#
+		     ,  SYSDATE	        
+			 )
+			 
+    </insert>    
+
+    <!-- 등록: 시스템 에러 로그 생성 -->
+    <insert id="SADM00400" parameterClass="HashMap">
+    
+		INSERT INTO EX_SYS_ERR_LOG
+			(
+			    ERR_LOG_DATE    -- 에러로그일시
+			 ,  ERR_LOG_SEQ_NO  -- 에러로그일련번호
+			 ,  ACS_IP          -- 접속IP
+			 ,  CRT_ID          -- 생성자
+			 ,  ERR_DT          -- 에러일자
+			 ,  ERR_TYPE        -- 에러 유형
+			 ,  ERR_DESC        -- 에러 설명
+			 ,  ERR_O_PGM_ID    -- 에러 발생 프로그램 ID
+			 ,  ERR_O_PGM_NM    -- 에러 발생 프로그램 명
+			 ,  ERR_O_SCRN_ID   -- 에러 발생 화면 ID
+			 ,  SYS_ID          -- 시스템ID
+			 ,  CRT_DATE        -- 생성 일시
+			 )
+		VALUES
+		     (
+                #err_log_date#
+             ,  #err_log_seq_no#
+             ,  #acs_ip#
+             ,  #crt_id#
+             ,  #err_dt#
+             ,  #err_type#
+             ,  #err_desc#
+             ,  #err_o_pgm_id#
+             ,  #err_o_pgm_nm#
+             ,  #err_o_scrn_id#
+             ,  #sys_id#
+		     ,  SYSDATE	        
+			 )
+			 
+    </insert>    
+
+    <!-- 조회: 공휴일 및 거래가능시간을 체크합니다. -->
+    <select id="SADM00500" parameterClass="HashMap" resultClass="java.lang.String">
+     <![CDATA[
+		SELECT
+	  		  CASE WHEN OFFDAY IS NOT NULL THEN 'N'  -- 공휴일이면 거래 불가(토,일포함)
+           		   ELSE (
+                         SELECT CASE WHEN COUNT(1) > 0 THEN 'Y'
+                                     ELSE 'N'
+                                END
+                         FROM (
+                                SELECT  MRKT_OPEN_HOUR 	    -- 오픈시간
+                                      , MRKT_CLOSE_HOUR     -- 마감시간
+                                FROM    EX_MARKET_POLICY 		
+                      		  )A ,
+                      		  (
+                        		SELECT 
+                                	    TO_CHAR(SYSDATE,'HH24') AS NOWTIME  -- 현재시간
+                        		FROM    DUAL 
+                      		  )B
+                 		WHERE  B.NOWTIME >= A.MRKT_OPEN_HOUR 
+                 		AND    B.NOWTIME < A.MRKT_CLOSE_HOUR
+                		)
+      		  END  AS RESULT 
+		FROM (
+      		  SELECT  CASE WHEN OFFDAY_YN = 'Y' THEN NULL	-- 마켓정책 공휴일거래여부
+                           ELSE 
+                               (
+						        SELECT
+                                        CASE WHEN TO_CHAR(SYSDATE ,'D') = '1' OR -- 일요일
+                                                  TO_CHAR(SYSDATE ,'D') = '7'    -- 토요일
+		      	                                  THEN TO_CHAR(SYSDATE,'YYYYMMDD') 
+                                             ELSE 
+                                                 (
+	                                              SELECT OFFDAY
+    		                                      FROM   EX_OFFDAY
+                                                  WHERE  OFFDAY = TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                  AND    USE_YN = 'Y'
+                                                 )
+                                        END 
+                                FROM   DUAL
+                               )
+                      END  AS OFFDAY  
+              FROM    EX_MARKET_POLICY
+     		 )
+     ]]> 
+    </select>    
+    
+	<!-- 조회: EX_COMMON_CODE - 공통코드 특정코드조회 -->
+    <select id="SADM00600" parameterClass="HashMap" resultClass="LinkedHashMap">
+        SELECT
+                CODE_GRP_ID    
+            ,   CODE           
+            ,   CODE_NM        
+            ,   CODE_SHRT_NM             
+            ,   CODE_DESC
+            ,   USE_YN
+        FROM
+                EX_COMMON_CODE
+        WHERE   USE_YN      =   'Y'
+		<isNotEmpty property="code_grp_id">
+        AND     CODE_GRP_ID = #code_grp_id#
+        </isNotEmpty>
+		<isNotEmpty property="code">
+		AND     CODE        = #code#
+		</isNotEmpty>
+    </select>
+    
+	<!-- 조회: EX_CUST_INFO - 특정사용자 정보 조회 -->
+    <select id="SADM00700" parameterClass="HashMap" resultClass="LinkedHashMap">
+		SELECT 
+			   CUST_SEQNO                  -- 고객일련번호
+			,  CUST_ID                     -- 고객ID
+			,  HASH_CUST_PW                -- 고객비밀번호
+			,  CUST_STATE                  -- 고객상태
+			,  TERMS_AGREE_YN              -- 약관동의여부
+			,  TERMS_AGREE_DTM             -- 약관동의일시
+			,  EMAIL_AUTH_YN               -- 이메일인증여부
+			,  EMAIL_AUTH_DTM              -- 이메일인증일시
+			,  PHONE_AUTH_YN               -- 휴대폰인증여부
+			,  PHONE_AUTH_DTM              -- 휴대폰인증일시
+			,  BANK_ACCT_AUTH_YN           -- 은행계좌인증여부
+			,  BANK_ACCT_AUTH_DTM          -- 은행계좌인증일시
+			,  CUST_NM                     -- 고객성명
+			,  BIRTHDAY                    -- 생년월일
+			,  SEX_GB                      -- 성별구분
+			,  FOREIGN_YN                  -- 외국인여부
+			,  MINOR_YN                    -- 미성년자여부
+			,  PHONE_TELCO                 -- 휴대폰통신사
+			,  PHONE_NO                    -- 휴대폰번호
+			,  LOGIN_ERR_CNT               -- 접속오류횟수
+			,  REG_DTM                     -- 가입일시
+			,  WITHDRAW_DTM                -- 탈퇴일시
+			,  RECOMMEND_CUST_SEQNO        -- 추천인고객일련번호
+			,  LAST_LOGIN_DTM              -- 최종접속일시
+			,  LAST_UPD_DTM                -- 최종갱신일시
+			,  FULL_MEMBER_DTM             -- 정회원인증일시
+		FROM   EX_CUST_INFO
+		WHERE  CUST_SEQNO = #cust_seqno#
+    </select>
+    
+    <!-- 조회: EX_CUST_WALLET - 지갑공개주소 존재 유무 조회 -->    
+    <select id="SADM00710" parameterClass="HashMap" resultClass="Integer">
+	    SELECT   COUNT(1) AS COUNT
+		FROM     EX_CUST_WALLET A
+		WHERE    A.SYS_ID     = #sys_id#
+		AND      A.CUST_SEQNO = #cust_seqno#
+		AND      A.USE_YN     = 'Y'
+    </select>
+    
+    <!-- 조회: EX_COIN_POLICY - 코인정책조회 -->
+    <select id="SADM00800" parameterClass="HashMap" resultClass="LinkedHashMap">
+		SELECT  
+		          SYS_ID							-- 시스템ID
+				, COIN_TYPE                         -- 코인유형
+				, COIN_LEVEL                        -- 코인등급
+				, COIN_VIEW_NO                      -- 코인표시순서
+				, COIN_NM_KOR                       -- 코인명_한글
+				, COIN_NM_ENG                       -- 코인명_영문
+				, COIN_UNIT_NM                      -- 코인_단위명
+				, COIN_SELL_UNIT_QTY                -- 코인판매단위수량
+				, COIN_SELL_UNIT_AMT                -- 코인판매단위금액
+				, COIN_SELL_AMT_MIN                 -- 코인판매금액_최소
+				, COIN_SELL_AMT_MAX                 -- 코인판매금액_최대
+				, SELL_FEE_RATE                     -- 판매수수료율
+				, SELL_FEE_MIN                      -- 판매수수료_최소
+				, SELL_FEE_MAX                      -- 판매수수료_최대
+				, SELL_FEE_DC_RATE                  -- 판매수수료할인율
+				, SELL_CANCEL_FEE_COIN              -- 판매취소수수료_코인
+				, SELL_CANCEL_FEE_DC_RATE           -- 판매취소수수료할인율
+				, BUY_FEE_RATE                      -- 구매수수료율
+				, BUY_FEE_MIN                       -- 구매수수료_최소
+				, BUY_FEE_MAX                       -- 구매수수료_최대
+				, BUY_FEE_DC_RATE                   -- 구매수수료할인율
+				, PV_COIN_SELL_UNIT_QTY             -- 프라이빗코인판매단위수량
+				, PV_COIN_SELL_UNIT_AMT             -- 프라이빗코인판매단위금액
+				, PV_COIN_SELL_AMT_MIN              -- 프라이빗코인판매금액_최소
+				, PV_COIN_SELL_AMT_MAX              -- 프라이빗코인판매금액_최대
+				, PV_SELL_FEE_RATE                  -- 프라이빗판매수수료율
+				, PV_SELL_FEE_MIN                   -- 프라이빗판매수수료_최소
+				, PV_SELL_FEE_MAX                   -- 프라이빗판매수수료_최대
+				, PV_SELL_FEE_DC_RATE               -- 프라이빗판매수수료할인율
+				, PV_SELL_CANCEL_FEE_COIN           -- 프라이빗판매취소수수료_코인
+				, PV_SELL_CANCEL_FEE_DC_RATE        -- 프라이빗판매취소수수료할인율
+				, PV_BUY_FEE_RATE                   -- 프라이빗구매수수료율
+				, PV_BUY_FEE_MIN                    -- 프라이빗구매수수료_최소
+				, PV_BUY_FEE_MAX                    -- 프라이빗구매수수료_최대
+				, PV_BUY_FEE_DC_RATE                -- 프라이빗구매수수료할인율
+				, USE_YN                            -- 사용여부
+				, BOS_WALLET_MIN_BALANCE            -- BOS월렛최소잔액
+				, BOS_COIN_SEND_FEE                 -- BOS코인이체수수료
+				, ERC20_CONTRACT_ADDR               -- ERC20_컨트렉트주소
+				, ERC20_ABI_INFO                    -- ERC20_ABI정보
+				, ERC20_DF_GAS_PRICE                -- ERC20_가스가격
+				, ERC20_DF_GAS_LIMIT                -- ERC20_가스한도
+				, ERC20_BLOCK_CFM_CNT               -- ERC20_블록생성조회횟수
+				, ETH_DF_GAS_PRICE                  -- ETH_가스가격
+				, ETH_DF_GAS_LIMIT                  -- ETH_가스한도
+				, ETH_BLOCK_CFM_CNT                 -- ETH_블록생성조회횟수
+				, FEE_PAY_GBN                       -- 수수료지급구분
+				, LAST_UPDR                         -- 최종갱신자
+				, LAST_UPD_DTM                      -- 최종갱신일시
+	    FROM   EX_COIN_POLICY
+		WHERE 1 = 1 
+		AND   USE_YN    = 'Y'
+		<isNotEmpty property="sys_id">
+		AND   SYS_ID    = #sys_id#
+		</isNotEmpty>
+		<isNotEmpty property="coin_type">
+		AND   COIN_TYPE = #coin_type#
+		</isNotEmpty>
+    </select>
+</sqlMap>

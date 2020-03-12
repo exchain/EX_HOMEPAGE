@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+<!--  Used By: [Core] APP-SERVER  /-->
+
+<sqlMapConfig>
+
+    <properties resource="conf/dbconnA.properties" />
+
+    <settings   cacheModelsEnabled="false"
+                enhancementEnabled="false"
+                lazyLoadingEnabled="true"
+                useStatementNamespaces="true"
+                statementCachingEnabled="false" />
+
+    <transactionManager type="JDBC">
+        <dataSource type="DBCP">
+            <property name="driverClassName"                value="${db.driver}" />
+            <property name="url"                            value="${db.url}" />
+            <property name="username"                       value="${db.username}" />
+            <property name="password"                       value="${db.password}" />
+            <!-- 2018.06.01 이성주 connection pool 설정 수정 -->
+            <property name="maxActive"                      value="50" /><!-- 50 -->
+            <property name="initialSize"                    value="1" /><!-- 1 -->
+            <property name="maxIdle"                        value="5" /><!-- 5 -->
+            <property name="minIdle"                        value="5" /><!-- 5 -->
+            <!-- 수정 끝 -->
+            <property name="maxWait"                        value="7000" />
+            <property name="validationQuery"                value="${db.validationquery}" />
+            <property name="testOnBorrow"                   value="true" />
+            <property name="testWhileIdle"                  value="true" />
+            <property name="validationQueryTimeout"         value="3000" />
+            <property name="timeBetweenEvictionRunsMillis"  value="60000" />
+            <property name="removeAbandoned"                value="true" />
+            <property name="removeAbandonedTimeout"         value="600" />
+            <property name="logAbandoned"                   value="false" />
+        </dataSource>
+    </transactionManager>
+    
+    <sqlMap resource="conf/sqlMapA/sadm/SADM00.xml" /> <!-- 관리__시스템환경정보로딩 -->
+       
+</sqlMapConfig>

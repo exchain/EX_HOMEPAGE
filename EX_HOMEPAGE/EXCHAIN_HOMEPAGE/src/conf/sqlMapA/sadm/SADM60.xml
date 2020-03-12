@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADM60">
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+
+    <!-- sms insert -->
+    <insert id="SADM60010" parameterClass="HashMap">
+    <![CDATA[
+    
+    	INSERT INTO EXCHAINSMS.SDK_SMS_SEND (
+    		MSG_ID,
+    		USER_ID,
+    		SCHEDULE_TYPE,
+    		SUBJECT,
+    		NOW_DATE,
+    		SEND_DATE,
+    		CALLBACK,
+    		DEST_COUNT,
+    		DEST_INFO,
+    		SMS_MSG,
+    		SEND_COUNT
+   		) VALUES (
+   			EXCHAINSMS.SDK_SMS_SEQ.nextval
+   			,#user_id#
+   			, 0
+   			,#subject#
+   			,TO_CHAR(SYSDATE , 'yyyyMMddhh24miss')
+   			,TO_CHAR(SYSDATE , 'yyyyMMddhh24miss')
+   			,#sender#
+   			,#receiver_count#
+   			,#receiver#
+   			,#contents#
+   			,#send_count#
+		)
+     ]]> 		        
+    </insert>
+
+</sqlMap>

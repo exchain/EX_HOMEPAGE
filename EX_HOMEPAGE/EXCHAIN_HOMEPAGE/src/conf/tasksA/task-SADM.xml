@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<tasks>
+    <task tid="SADM00000"   class="com.finger.exchain.tasks.sadm.SADM00"    action="fncSADM00000"       desc="Server Environment" />
+</tasks>

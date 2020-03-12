@@ -1,0 +1,1775 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SADS20">
+    <typeAlias alias="String" type="java.lang.String" />
+    <typeAlias alias="HashMap" type="java.util.HashMap" />
+    <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap" />
+
+    <!-- 조회: 알림공통처리 > 시스템&알림대상업무정보조회 -->
+    <select id="SADS20010" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  A.SYS_MGT_NO		
+			 , 	A.SYS_MGT_NM 
+			 , 	A.SMS_SND_STR_DTM 
+			 , 	A.SMS_SND_END_DTM 
+			 ,	B.ALM_TYPE_CD
+			 , 	(
+			 		SELECT COM_CD_NM_KEY
+			 		  FROM TCMS_CF_COM_CODE
+			 		 WHERE GRP_CD = 'COM101'
+			 		   AND COM_CD = B.ALM_TYPE_CD
+			 	) AS ALM_TYPE_XX			 
+			 ,	DECODE(A.SMS_USE_YN, 'N', A.SMS_USE_YN, B.SMS_ALM_USE_YN) AS SMS_USE_YN
+			 ,  B.ALM_USE_YN
+			 ,	B.EXPI_ALM_SDT_1
+			 ,	B.EXPI_ALM_SDT_2
+			 ,	B.EXPI_ALM_SDT_3 
+			 ,	B.ALM_TG_ID_1
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = B.ALM_TG_ID_1
+			    ) AS ALM_TG_CELL_NO_1
+			 ,	B.ALM_TG_ID_2
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = B.ALM_TG_ID_2
+			    ) AS ALM_TG_CELL_NO_2			 
+		  FROM 	TCMS_CF_SYS			A
+		  	 ,	TCMS_CF_NOTI_TGT	B		
+		 WHERE	A.SYS_MGT_NO	= B.SYS_MGT_NO
+		   AND 	B.SYS_MGT_NO 	= #sys_mgt_no#
+		   AND 	B.ALM_TYPE_CD 	= #alm_type_cd#
+    </select>    
+    
+    <!-- 조회: 알림공통처리 > 계좌만기도래 -->
+    <select id="SADS20011" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  ACNT_SEQ_NO		
+			 , 	ACNT_NO
+			 , 	SMARK_ACNT_NO
+			 , 	BANK_CD
+			 , 	CUR_CD
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT distinct COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM000'
+							   AND COM_CD = A.BANK_CD)
+					   AND  LNGG_CD = 'ko'
+			    ) AS BANK_NM_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM000'
+							   AND COM_CD = A.BANK_CD)
+					   AND  LNGG_CD = 'en'
+			    ) AS BANK_NM_EN			    
+			 ,  ACCT_OWN_NM
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_USER_IN
+			 		 WHERE  CD_KEY = A.ACNT_USAG_KEY
+					   AND  LNGG_CD = 'ko'
+			    ) AS ACNT_USAG_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_USER_IN
+			 		 WHERE  CD_KEY = A.ACNT_USAG_KEY
+					   AND  LNGG_CD = 'en'			 		 
+			    ) AS ACNT_USAG_EN					 
+			 ,  (
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM006'
+							   AND COM_CD = A.ACNT_TYPE_CD)
+					   AND  LNGG_CD = 'ko'
+			    ) AS ACNT_TYPE_NM_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM006'
+							   AND COM_CD = A.ACNT_TYPE_CD)
+					   AND  LNGG_CD = 'en'
+			    ) AS ACNT_TYPE_NM_EN	
+			 , 	TO_CHAR(TO_DATE(NEW_DT,'YYYYMMDD'),'YYYY-MM-DD') AS NEW_DT
+			 , 	TO_CHAR(TO_DATE(EXPI_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EXPI_DT			 
+			 , 	BAL_SIGN
+			 , 	BAL
+			 ,  SUP_POSB_BAL
+			 , 	LOW_BAL_ALM_AMT
+			 ,  'D' AS ACNT_DIV
+		  FROM 	TCMS_CF_DMST_ACNT	A
+		 WHERE	USE_YN 			= 'Y'
+		   AND 	EXPI_DT = TO_CHAR(SYSDATE + #expi_alm_sdt#, 'YYYYMMDD')
+		   
+	 UNION ALL
+		   
+		SELECT  ACNT_SEQ_NO		
+			 , 	ACNT_NO
+			 , 	SMARK_ACNT_NO
+			 , 	'OVRS_BANK_CD' AS BANK_CD
+			 , 	CUR_CD
+			 ,	BANK_NM AS BANK_NM_KO
+			 ,  BANK_NM AS BANK_NM_EN
+			 ,  ACCT_OWN_NM
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_USER_IN
+			 		 WHERE  CD_KEY = A.ACNT_USAG_KEY
+					   AND  LNGG_CD = 'ko'
+			    ) AS ACNT_USAG_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_USER_IN
+			 		 WHERE  CD_KEY = A.ACNT_USAG_KEY
+					   AND  LNGG_CD = 'en'			 		 
+			    ) AS ACNT_USAG_EN		
+			 ,  (
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM006'
+							   AND COM_CD = A.ACNT_TYPE_CD)
+					   AND  LNGG_CD = 'ko'
+			    ) AS ACNT_TYPE_NM_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM006'
+							   AND COM_CD = A.ACNT_TYPE_CD)
+					   AND  LNGG_CD = 'en'
+			    ) AS ACNT_TYPE_NM_EN	
+			 , 	TO_CHAR(TO_DATE(NEW_DT,'YYYYMMDD'),'YYYY-MM-DD') AS NEW_DT
+			 , 	TO_CHAR(TO_DATE(EXPI_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EXPI_DT			 
+			 , 	BAL_SIGN
+			 , 	BAL
+			 ,  SUP_POSB_BAL
+			 , 	LOW_BAL_ALM_AMT
+			 ,  'O' AS ACNT_DIV		
+		  FROM 	TCMS_CF_OVRS_ACNT	A
+		 WHERE	USE_YN 			= 'Y'
+		   AND 	EXPI_DT = TO_CHAR(SYSDATE + #expi_alm_sdt#, 'YYYYMMDD')
+		   
+	 UNION ALL
+		   
+        SELECT  ACNT_SEQ_NO     
+             ,  ACNT_NO
+             ,  SMARK_ACNT_NO
+             ,  BANK_CD
+             ,  CUR_CD
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT distinct COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM000'
+                               AND COM_CD = A.BANK_CD)
+                       AND  LNGG_CD = 'ko'
+                ) AS BANK_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM000'
+                               AND COM_CD = A.BANK_CD)
+                       AND  LNGG_CD = 'en'
+                ) AS BANK_NM_EN             
+             ,  ACCT_OWN_NM
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = A.ACNT_USAG_KEY
+                       AND  LNGG_CD = 'ko'
+                ) AS ACNT_USAG_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = A.ACNT_USAG_KEY
+                       AND  LNGG_CD = 'en'                   
+                ) AS ACNT_USAG_EN                    
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM006'
+                               AND COM_CD = A.ACNT_TYPE_CD)
+                       AND  LNGG_CD = 'ko'
+                ) AS ACNT_TYPE_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM006'
+                               AND COM_CD = A.ACNT_TYPE_CD)
+                       AND  LNGG_CD = 'en'
+                ) AS ACNT_TYPE_NM_EN    
+             ,  TO_CHAR(TO_DATE(NEW_DT,'YYYYMMDD'),'YYYY-MM-DD') AS NEW_DT
+             ,  TO_CHAR(TO_DATE(EXPI_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EXPI_DT             
+             ,  BAL_SIGN
+             ,  BAL
+             ,  SUP_POSB_BAL
+             ,  LOW_BAL_ALM_AMT
+             ,  'S' AS ACNT_DIV
+          FROM  TCMS_CF_SC_ACNT   A
+         WHERE  USE_YN          = 'Y'
+           AND  EXPI_DT = TO_CHAR(SYSDATE + #expi_alm_sdt#, 'YYYYMMDD')
+           		   
+    </select>    
+    
+    <!-- 등록: 알림정보등록 -->
+    <insert id="SADS20012" parameterClass="HashMap">
+        INSERT 
+        INTO 	TCMS_CF_NOTI
+        (
+			 	ALM_DT            			-- 알림일자
+			 ,	ALM_DT_SEQ     				-- 알림일자순번
+             ,  USER_ID                     -- 사용자 ID
+		 	 ,	ALM_TYPE_CD         		-- 알림유형코드              
+			 ,	ALM_TITLE        			-- 알림제목
+			 ,  ALM_TITLE_KEY               -- 알림제목KEY
+			 ,	ALM_CONTS        			-- 알림내용
+			 ,  ALM_CONTS_KEY               -- 알림내용KEY
+			 ,	ALM_DATE        			-- 알림일시
+			 ,  LINK_MENU_ID                -- LINK메뉴ID
+			 ,	CRT_ID             			-- 생성자                       
+			 ,	CRT_DATE           			-- 생성 일시                    
+		)
+		VALUES
+		(       
+			 	#alm_dt#		
+             ,  #alm_dt_seq#
+             ,  #user_id#
+			 ,	#alm_type_cd# 				     
+			 ,	#alm_title#
+			 ,  #alm_title_key#       	
+			 ,	#alm_conts# 	
+			 ,  #alm_conts_key#
+			 ,	SYSDATE
+			 ,  #link_menu_id#
+			 ,	#crt_id# 			
+			 ,	SYSDATE 			
+		)		
+    </insert>    
+    
+    
+    <!-- 조회: 알림공통처리 > 일련번호 생성 -->
+    <select id="SADS20012_1" resultClass="HashMap" >
+    
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDD')            AS ALM_DT
+             , LPAD(NVL(MAX(ALM_DT_SEQ)+1, 1), 6, '0') AS ALM_DT_SEQ 
+          FROM TCMS_CF_NOTI
+         WHERE ALM_DT   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    
+    </select>    
+    
+    
+    <!-- 등록: 알림정보(다국어처리) -->
+    <insert id="SADS20012_2" parameterClass="HashMap">
+
+            INSERT
+            INTO    TCMS_CF_MLNGG_USER_IN
+                (
+                    CD_KEY
+                ,   LNGG_CD
+                ,   MLNGG_CD_KIND
+                ,   CD_NM
+                ,   CRT_ID
+                ,   CRT_DATE                  
+                )
+            VALUES
+                (
+                    #cd_key#
+                ,   #lngg_cd#
+                ,   'UIT'
+                ,   #cd_nm#
+                ,   #crt_id#                
+                ,   SYSDATE
+                )
+                
+    </insert>   
+    
+    <!-- 등록: 알림SMS발송정보등록 -->
+    <insert id="SADS20013" parameterClass="HashMap">
+        INSERT 
+        INTO 	TCMS_CF_NOTI_SMS
+        (
+        		SND_DT        				-- 발송일자              
+			 ,	SND_DT_SEQ            		-- 발송일자순번
+			 ,	SYS_MGT_NO     				-- 시스템관리번호
+		 	 ,	TEL_NO         				-- 전화번호              
+			 ,	SND_CONTS        			-- 발송내용
+			 ,	SND_RST        				-- 발송결과
+			 ,	CRT_ID             			-- 생성자                       
+			 ,	CRT_DATE           			-- 생성 일시                    
+		)
+		VALUES
+		(       
+			    TO_CHAR(SYSDATE, 'YYYYMMDD')
+			 ,	(
+					SELECT LPAD(NVL(MAX(SND_DT_SEQ)+1, 1), 6, '0') 
+					  FROM TCMS_CF_NOTI_SMS
+					 WHERE SND_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')	
+			    )
+			 ,	#sys_mgt_no# 				     
+			 ,	#tel_no# 	
+			 ,	#snd_conts# 	
+			 ,	#snd_rst# 	
+			 ,	#crt_id# 			
+			 ,	SYSDATE 			
+		)		
+    </insert>        
+    
+    
+    <!-- 조회: 알림공통처리 > 계좌신규발급정보조회 -->
+    <select id="SADS20014" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  
+				(SELECT CD_NM
+				   FROM TCMS_CF_MLNGG_SCRN_CD
+				  WHERE CD_KEY = 
+								(
+						     		SELECT COM_CD_NM_KEY
+						     		  FROM TCMS_CF_COM_CODE
+						     		 WHERE GRP_CD = 'COM000'
+						     		   AND COM_CD = A.BANK_CD
+						     	) 
+		     	  AND LNGG_CD = 'ko'
+		     	) 					AS BANK_NM_KO	-- 은행명
+			,	(SELECT CD_NM
+				   FROM TCMS_CF_MLNGG_SCRN_CD
+				  WHERE CD_KEY = 
+								(
+						     		SELECT COM_CD_NM_KEY
+						     		  FROM TCMS_CF_COM_CODE
+						     		 WHERE GRP_CD = 'COM000'
+						     		   AND COM_CD = A.BANK_CD
+						     	) 
+		     	  AND LNGG_CD = 'en'
+		     	) 					AS BANK_NM_EN	-- 은행명		     	
+		     ,  A.ACNT_NO						-- 계좌번호
+		     ,  A.CUR_CD                        -- 통화
+		     ,  A.BAL                           -- 잔액
+		     ,  A.BAL AS SUP_POSB_BAl           -- 지급가능잔액
+		     ,  'D'                 AS ACNT_DIV -- 계좌구분
+		  FROM 	TCMS_CF_DMST_ACNT	A
+		 WHERE  A.NEW_ISS_YN = 'Y'
+		     <isNotEmpty property="acnt_no">       
+           AND 	ACNT_NO				= #acnt_no#
+      	     </isNotEmpty>
+		     <isNotEmpty property="bank_cd">       
+           AND 	BANK_CD				= #bank_cd# 
+      	     </isNotEmpty>
+		     <isNotEmpty property="cur_cd">       
+           AND 	CUR_CD				= #cur_cd#
+      	     </isNotEmpty>
+           
+     UNION ALL
+
+		SELECT  
+				A.BANK_NM AS BANK_NM_KO			-- 은행명
+			 ,	A.BANK_NM AS BANK_NM_EN			-- 은행명
+		     ,  A.ACNT_NO						-- 계좌번호
+		     ,  A.CUR_CD                        -- 통화
+		     ,  A.BAL                           -- 잔액
+		     ,  A.BAL AS SUP_POSB_BAl           -- 지급가능잔액		     
+		     ,  'O'                 AS ACNT_DIV -- 계좌구분		     
+		  FROM 	TCMS_CF_OVRS_ACNT	A
+		 WHERE  A.NEW_ISS_YN = 'Y'
+		     <isNotEmpty property="acnt_no">       
+           AND 	ACNT_NO				= #acnt_no#
+      	     </isNotEmpty>
+		     <isNotEmpty property="cur_cd">       
+           AND 	CUR_CD				= #cur_cd#
+      	     </isNotEmpty>
+     
+     UNION ALL 	     
+      	     
+        SELECT  
+                (SELECT CD_NM
+                   FROM TCMS_CF_MLNGG_SCRN_CD
+                  WHERE CD_KEY = 
+                                (
+                                    SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD = 'COM000'
+                                       AND COM_CD = A.BANK_CD
+                                ) 
+                  AND LNGG_CD = 'ko'
+                )                   AS BANK_NM_KO   -- 은행명
+            ,   (SELECT CD_NM
+                   FROM TCMS_CF_MLNGG_SCRN_CD
+                  WHERE CD_KEY = 
+                                (
+                                    SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD = 'COM000'
+                                       AND COM_CD = A.BANK_CD
+                                ) 
+                  AND LNGG_CD = 'en'
+                )                   AS BANK_NM_EN   -- 은행명              
+             ,  A.ACNT_NO                       -- 계좌번호
+             ,  A.CUR_CD                        -- 통화
+             ,  A.BAL                           -- 잔액
+             ,  A.BAL AS SUP_POSB_BAl           -- 지급가능잔액
+             ,  'S'                 AS ACNT_DIV -- 계좌구분
+          FROM  TCMS_CF_SC_ACNT   A
+         WHERE  A.NEW_ISS_YN = 'Y'
+             <isNotEmpty property="acnt_no">       
+           AND  ACNT_NO             = #acnt_no#
+             </isNotEmpty>
+             <isNotEmpty property="bank_cd">       
+           AND  BANK_CD             = #bank_cd# 
+             </isNotEmpty>
+             <isNotEmpty property="cur_cd">       
+           AND  CUR_CD              = #cur_cd#
+             </isNotEmpty>
+      	     
+      	     
+    </select>        
+    
+    <!-- 조회: 알림공통처리 > 타행이체불능내역조회 -->
+    <select id="SADS20016" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  A.ACNT_SEQ_NO
+			 , 	B.ACNT_NO
+			 , 	B.SMARK_ACNT_NO AS OUT_ACNT_NO			 
+			 ,	(
+					SELECT CD_NM
+					  FROM TCMS_CF_MLNGG_SCRN_CD
+					 WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD = 'COM000'
+									   AND COM_CD = B.BANK_CD)
+					   AND LNGG_CD = 'ko'
+			    ) AS OUT_BANK_NM_KO			
+			 ,	(
+					SELECT CD_NM
+					  FROM TCMS_CF_MLNGG_SCRN_CD
+					 WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD = 'COM000'
+									   AND COM_CD = B.BANK_CD)
+					   AND LNGG_CD = 'en'
+			    ) AS OUT_BANK_NM_EN						     
+			 , 	IN_BANK_CD
+			 , 	IN_ACNT_NO
+			 ,	(
+					SELECT CD_NM
+					  FROM TCMS_CF_MLNGG_SCRN_CD
+					 WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD = 'COM000'
+									   AND COM_CD = A.IN_BANK_CD)
+					   AND LNGG_CD = 'ko'
+			    ) AS IN_BANK_NM_KO		
+			 ,	(
+					SELECT CD_NM
+					  FROM TCMS_CF_MLNGG_SCRN_CD
+					 WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD = 'COM000'
+									   AND COM_CD = A.IN_BANK_CD)
+					   AND LNGG_CD = 'en'
+			    ) AS IN_BANK_NM_EN					    
+			 , 	REQ_AMT
+			 , 	NORM_PROC_AMT
+			 , 	PROC_IABL_AMT
+			 , 	ERR_CD
+			 ,  B.CUR_CD
+		  FROM 	TCMS_FM_OTH_BANK_NOT	A
+		     ,  TCMS_CF_DMST_ACNT       B
+		 WHERE	A.ACNT_SEQ_NO     = B.ACNT_SEQ_NO  
+		 AND    A.ENP_NO          = #enp_no#
+		 AND    A.BANK_CD         = #bank_cd#
+		 AND    A.TRNS_DT         = #trns_dt#
+		 AND    A.ORG_TRNS_MSG_NO = #org_trns_msg_no#
+    </select>        
+    
+	<!-- 조회: 알림공통처리 > 외화송금도착통지조회 -->
+    <select id="SADS20027" parameterClass="HashMap" resultClass="LinkedHashMap" >
+       SELECT     ENP_NO			 
+			 ,	(
+					SELECT CD_NM
+					  FROM TCMS_CF_MLNGG_SCRN_CD
+					 WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD = 'COM000'
+									   AND COM_CD = BANK_CD)
+					   AND LNGG_CD = 'ko'
+			    ) AS OUT_BANK_NM_KO			
+			 ,	(
+					SELECT CD_NM
+					  FROM TCMS_CF_MLNGG_SCRN_CD
+					 WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD = 'COM000'
+									   AND COM_CD = BANK_CD)
+					   AND LNGG_CD = 'en'
+			    ) AS OUT_BANK_NM_EN						     
+			 , 	TRMS_DT
+			 , 	SPCL_NO
+			 , 	REMT_DT
+			 , 	OT_REMT_TRNS_NO
+			 , 	CASE WHEN DIV_CD = 'N' THEN '정상'
+			         ELSE '취소'
+			    END AS DIV_CD
+			 , 	ACPN_CUR
+             ,  ACPN_AMT
+             ,  REMTP_NM
+             ,  RECVR_NM
+             ,  RECVR_ACNT_NO
+        FROM  TCMS_FM_FOC_ARR_NOTI
+	   WHERE  ENP_NO    = #enp_no#
+		 AND  BANK_CD   = #bank_cd#
+		 AND  TRMS_DT   = #trms_dt#
+		 AND  SPCL_NO   = #spcl_no#
+    </select>  
+    
+    <!-- 조회: 알림공통처리 > 결재 대기/반려 조회 -->
+    <select id="SADS20017" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  B.APPR_PRGR_SEQ_NO
+			 , 	B.APPR_PER_SEQ
+			 , 	A.SUP_LIST_NM
+			 , 	A.SYS_MGT_NO
+			 ,  A.APPR_LN_NM
+			 ,  A.TOT_SUP_CNT
+			 ,  A.TOT_SUP_AMT			 
+			 , 	A.SUP_BIZ_TYPE_CD
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'ko'
+			    ) AS SUP_BIZ_TYPE_NM_KO				-- 지급업무유형
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'en'
+			    ) AS SUP_BIZ_TYPE_NM_EN				-- 지급업무유형			    
+			 , 	A.SUP_LIST_SEQ_NO
+			 ,	A.CRT_ID				-- 상신자ID
+			 , 	B.APPR_PER_ID			-- 결재자ID
+			 ,	TO_CHAR(A.CRT_DATE, 'YYYY-MM-DD') AS CRT_DATE		-- 상신일자
+			 ,	TO_CHAR(B.APPR_DATE, 'YYYY-MM-DD') AS APPR_DATE		-- 결재일자
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = B.APPR_PER_ID
+			    ) AS APPR_PER_CELL_NO				-- 결재자 전화번호
+			 ,	(
+					SELECT USER_NM
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.CRT_ID
+			    ) AS CRT_NM							-- 상신자이름
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.CRT_ID
+			    ) AS CRT_PER_CELL_NO		 		-- 상신자 전화번호
+			 ,	(
+					SELECT USER_NM
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = B.APPR_PER_ID
+			    ) AS APPR_PER_NM					-- 결재자이름	
+			 ,  A.KRW_FOC_DIV             -- 원화외화구분        	
+		  FROM 	TCMS_AP_PRGR		A
+		  	 ,	TCMS_AP_PRGR_DTL	B
+		 WHERE	A.APPR_PRGR_SEQ_NO	= B.APPR_PRGR_SEQ_NO
+		   AND	A.SYS_MGT_NO 		= #sys_mgt_no#
+		   AND	A.SUP_BIZ_TYPE_CD 	= #sup_biz_type_cd#
+		   AND	A.SUP_LIST_SEQ_NO 	= #sup_list_seq_no#
+		   AND  A.CANCEL_YN         = 'N'
+		   AND	B.APPR_PER_SEQ 		= (
+				                       	SELECT MIN(APPR_PER_SEQ)
+				                       	  FROM TCMS_AP_PRGR_DTL
+				                       	 WHERE APPR_PRGR_SEQ_NO = A.APPR_PRGR_SEQ_NO
+				                       	   AND APPR_ST_CD 		= #appr_st_cd#
+		                       		  )
+    </select>            
+    
+    <!-- 조회: 알림공통처리 > 결재완료조회 -->
+    <select id="SADS20018" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  B.APPR_PRGR_SEQ_NO
+			 , 	B.APPR_PER_SEQ
+			 , 	A.SUP_LIST_NM
+			 , 	A.SYS_MGT_NO
+			 ,  A.APPR_LN_NM
+			 ,  A.TOT_SUP_CNT
+			 ,  A.TOT_SUP_AMT			 
+			 , 	A.SUP_BIZ_TYPE_CD
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'ko'
+			    ) AS SUP_BIZ_TYPE_NM_KO				            -- 지급업무유형
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'en'
+			    ) AS SUP_BIZ_TYPE_NM_EN				            -- 지급업무유형			    
+			 , 	A.SUP_LIST_SEQ_NO
+			 ,	A.CRT_ID										-- 상신자ID
+			 ,	(
+					SELECT USER_NM
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.CRT_ID
+			    ) AS CRT_NM							           -- 상신자이름
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.CRT_ID
+			    ) AS CRT_PER_CELL_NO		 					-- 상신자 전화번호
+			 , 	B.APPR_PER_ID									-- 결재자ID
+			 ,	C.EXEC_ID										-- 실행자ID
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = C.EXEC_ID
+			    ) AS EXEC_PER_CELL_NO		 					-- 실행자 전화번호
+			 ,	TO_CHAR(A.CRT_DATE, 'YYYY-MM-DD') AS CRT_DATE	-- 상신일자
+			 ,	TO_CHAR(B.APPR_DATE, 'YYYY-MM-DD') AS APPR_DATE	-- 결재일자			    			 
+			 ,	C.EXEC_DIV										-- 실행구분
+			 ,  A.KRW_FOC_DIV                                   -- 원화외화구분 
+		  FROM 	TCMS_AP_PRGR		A
+		  	 ,	TCMS_AP_PRGR_DTL	B
+		  	 ,	TCMS_FM_KRW_PAY_REQ		C
+		 WHERE	A.APPR_PRGR_SEQ_NO	= B.APPR_PRGR_SEQ_NO
+		   AND	A.SYS_MGT_NO 		= C.SYS_MGT_NO
+		   AND	A.SUP_BIZ_TYPE_CD 	= C.SUP_BIZ_TYPE_CD
+		   AND	A.SUP_LIST_SEQ_NO 	= C.SUP_LIST_SEQ_NO
+		   AND	A.SYS_MGT_NO 		= #sys_mgt_no#
+		   AND	A.SUP_BIZ_TYPE_CD 	= #sup_biz_type_cd#
+		   AND	A.SUP_LIST_SEQ_NO 	= #sup_list_seq_no#
+		   AND  A.CANCEL_YN         = 'N'
+		   AND	B.APPR_PER_SEQ 		= (
+				                       	SELECT MAX(APPR_PER_SEQ)
+				                       	  FROM TCMS_AP_PRGR_DTL
+				                       	 WHERE APPR_PRGR_SEQ_NO = A.APPR_PRGR_SEQ_NO
+				                       	   AND APPR_ST_CD = #appr_st_cd#
+		                       		  )
+    </select>   
+
+    <!-- 조회: 알림공통처리 > 결재완료조회(외화) -->
+    <select id="SADS20018_1" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  B.APPR_PRGR_SEQ_NO
+			 , 	B.APPR_PER_SEQ
+			 , 	A.SUP_LIST_NM
+			 , 	A.SYS_MGT_NO
+			 ,  A.APPR_LN_NM
+			 ,  A.TOT_SUP_CNT
+			 ,  A.TOT_SUP_AMT			 
+			 , 	A.SUP_BIZ_TYPE_CD
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'ko'
+			    ) AS SUP_BIZ_TYPE_NM_KO				            -- 지급업무유형
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'en'
+			    ) AS SUP_BIZ_TYPE_NM_EN				            -- 지급업무유형			    
+			 , 	A.SUP_LIST_SEQ_NO
+			 ,	A.CRT_ID										-- 상신자ID
+			 ,	(
+					SELECT USER_NM
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.CRT_ID
+			    ) AS CRT_NM							           -- 상신자이름
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.CRT_ID
+			    ) AS CRT_PER_CELL_NO		 					-- 상신자 전화번호
+			 , 	B.APPR_PER_ID									-- 결재자ID
+			 ,	C.EXEC_ID										-- 실행자ID
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = C.EXEC_ID
+			    ) AS EXEC_PER_CELL_NO		 					-- 실행자 전화번호
+			 ,	TO_CHAR(A.CRT_DATE, 'YYYY-MM-DD') AS CRT_DATE		-- 상신일자
+			 ,	TO_CHAR(B.APPR_DATE, 'YYYY-MM-DD') AS APPR_DATE		-- 결재일자			    			 
+			 ,	C.EXEC_DIV										-- 실행구분
+			 ,  A.KRW_FOC_DIV                                   -- 원화외화구분 
+		  FROM 	TCMS_AP_PRGR		A
+		  	 ,	TCMS_AP_PRGR_DTL	B
+		  	 ,	TCMS_FM_FOC_PAY_REQ		C
+		 WHERE	A.APPR_PRGR_SEQ_NO	= B.APPR_PRGR_SEQ_NO
+		   AND	A.SYS_MGT_NO 		= C.SYS_MGT_NO
+		   AND	A.SUP_BIZ_TYPE_CD 	= C.SUP_BIZ_TYPE_CD
+		   AND	A.SUP_LIST_SEQ_NO 	= C.SUP_LIST_SEQ_NO
+		   AND	A.SYS_MGT_NO 		= #sys_mgt_no#
+		   AND	A.SUP_BIZ_TYPE_CD 	= #sup_biz_type_cd#
+		   AND	A.SUP_LIST_SEQ_NO 	= #sup_list_seq_no#
+		   AND  A.CANCEL_YN         = 'N'
+		   AND	B.APPR_PER_SEQ 		= (
+				                       	SELECT MAX(APPR_PER_SEQ)
+				                       	  FROM TCMS_AP_PRGR_DTL
+				                       	 WHERE APPR_PRGR_SEQ_NO = A.APPR_PRGR_SEQ_NO
+				                       	   AND APPR_ST_CD = #appr_st_cd#
+		                       		  )
+    </select>                  
+    
+     <!-- 조회: 알림공통처리 > 결재완료조회 -->
+    <select id="SADS20018_2" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT  B.APPR_PRGR_SEQ_NO
+             ,  B.APPR_PER_SEQ
+             ,  A.SUP_LIST_NM
+             ,  A.SYS_MGT_NO
+             ,  A.APPR_LN_NM
+             ,  A.TOT_SUP_CNT
+             ,  A.TOT_SUP_AMT            
+             ,  A.SUP_BIZ_TYPE_CD
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD   = 'COM402'
+                                       AND COM_CD = A.SUP_BIZ_TYPE_CD)
+                       AND LNGG_CD = 'ko'
+                ) AS SUP_BIZ_TYPE_NM_KO                         -- 지급업무유형
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD   = 'COM402'
+                                       AND COM_CD = A.SUP_BIZ_TYPE_CD)
+                       AND LNGG_CD = 'en'
+                ) AS SUP_BIZ_TYPE_NM_EN                         -- 지급업무유형               
+             ,  A.SUP_LIST_SEQ_NO
+             ,  A.CRT_ID                                        -- 상신자ID
+             ,  (
+                    SELECT USER_NM
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.CRT_ID
+                ) AS CRT_NM                                    -- 상신자이름
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.CRT_ID
+                ) AS CRT_PER_CELL_NO                            -- 상신자 전화번호
+             ,  B.APPR_PER_ID                                   -- 결재자ID
+             ,  C.EXEC_ID                                       -- 실행자ID
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = C.EXEC_ID
+                ) AS EXEC_PER_CELL_NO                           -- 실행자 전화번호
+             ,  TO_CHAR(A.CRT_DATE, 'YYYY-MM-DD') AS CRT_DATE   -- 상신일자
+             ,  TO_CHAR(B.APPR_DATE, 'YYYY-MM-DD') AS APPR_DATE -- 결재일자                          
+             ,  C.EXEC_DIV                                      -- 실행구분
+             ,  A.KRW_FOC_DIV                                   -- 원화외화구분 
+          FROM  TCMS_AP_PRGR        A
+             ,  TCMS_AP_PRGR_DTL    B
+             ,  TCMS_FM_SC_KRW_PAY_REQ     C
+         WHERE  A.APPR_PRGR_SEQ_NO  = B.APPR_PRGR_SEQ_NO
+           AND  A.SYS_MGT_NO        = C.SYS_MGT_NO
+           AND  A.SUP_BIZ_TYPE_CD   = C.SUP_BIZ_TYPE_CD
+           AND  A.SUP_LIST_SEQ_NO   = C.SUP_LIST_SEQ_NO
+           AND  A.SYS_MGT_NO        = #sys_mgt_no#
+           AND  A.SUP_BIZ_TYPE_CD   = #sup_biz_type_cd#
+           AND  A.SUP_LIST_SEQ_NO   = #sup_list_seq_no#
+           AND  A.CANCEL_YN         = 'N'
+           AND  B.APPR_PER_SEQ      = (
+                                        SELECT MAX(APPR_PER_SEQ)
+                                          FROM TCMS_AP_PRGR_DTL
+                                         WHERE APPR_PRGR_SEQ_NO = A.APPR_PRGR_SEQ_NO
+                                           AND APPR_ST_CD = #appr_st_cd#
+                                      )
+    </select>   
+
+    <!-- 조회: 알림공통처리 > 결재완료조회(외화) -->
+    <select id="SADS20018_3" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT  B.APPR_PRGR_SEQ_NO
+             ,  B.APPR_PER_SEQ
+             ,  A.SUP_LIST_NM
+             ,  A.SYS_MGT_NO
+             ,  A.APPR_LN_NM
+             ,  A.TOT_SUP_CNT
+             ,  A.TOT_SUP_AMT            
+             ,  A.SUP_BIZ_TYPE_CD
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD   = 'COM402'
+                                       AND COM_CD = A.SUP_BIZ_TYPE_CD)
+                       AND LNGG_CD = 'ko'
+                ) AS SUP_BIZ_TYPE_NM_KO                         -- 지급업무유형
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD   = 'COM402'
+                                       AND COM_CD = A.SUP_BIZ_TYPE_CD)
+                       AND LNGG_CD = 'en'
+                ) AS SUP_BIZ_TYPE_NM_EN                         -- 지급업무유형               
+             ,  A.SUP_LIST_SEQ_NO
+             ,  A.CRT_ID                                        -- 상신자ID
+             ,  (
+                    SELECT USER_NM
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.CRT_ID
+                ) AS CRT_NM                                    -- 상신자이름
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.CRT_ID
+                ) AS CRT_PER_CELL_NO                            -- 상신자 전화번호
+             ,  B.APPR_PER_ID                                   -- 결재자ID
+             ,  C.EXEC_ID                                       -- 실행자ID
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = C.EXEC_ID
+                ) AS EXEC_PER_CELL_NO                           -- 실행자 전화번호
+             ,  TO_CHAR(A.CRT_DATE, 'YYYY-MM-DD') AS CRT_DATE       -- 상신일자
+             ,  TO_CHAR(B.APPR_DATE, 'YYYY-MM-DD') AS APPR_DATE     -- 결재일자                          
+             ,  C.EXEC_DIV                                      -- 실행구분
+             ,  A.KRW_FOC_DIV                                   -- 원화외화구분 
+          FROM  TCMS_AP_PRGR        A
+             ,  TCMS_AP_PRGR_DTL    B
+             ,  TCMS_FM_SC_FOC_PAY_REQ     C
+         WHERE  A.APPR_PRGR_SEQ_NO  = B.APPR_PRGR_SEQ_NO
+           AND  A.SYS_MGT_NO        = C.SYS_MGT_NO
+           AND  A.SUP_BIZ_TYPE_CD   = C.SUP_BIZ_TYPE_CD
+           AND  A.SUP_LIST_SEQ_NO   = C.SUP_LIST_SEQ_NO
+           AND  A.SYS_MGT_NO        = #sys_mgt_no#
+           AND  A.SUP_BIZ_TYPE_CD   = #sup_biz_type_cd#
+           AND  A.SUP_LIST_SEQ_NO   = #sup_list_seq_no#
+           AND  A.CANCEL_YN         = 'N'
+           AND  B.APPR_PER_SEQ      = (
+                                        SELECT MAX(APPR_PER_SEQ)
+                                          FROM TCMS_AP_PRGR_DTL
+                                         WHERE APPR_PRGR_SEQ_NO = A.APPR_PRGR_SEQ_NO
+                                           AND APPR_ST_CD = #appr_st_cd#
+                                      )
+    </select>   
+    
+    <!-- 조회: 알림공통처리 > 실행완료,실패시 등록자,실행자 조회 -->
+    <select id="SADS20019" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  A.SUP_LIST_NM			-- 지급목록명
+			 ,	A.REG_ID				-- 등록자ID
+			 ,	A.EXEC_ID				-- 실행자ID
+			 ,	A.EXEC_DIV				-- 실행구분
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'ko'
+			    ) AS SUP_BIZ_TYPE_NM_KO 			            -- 지급업무유형						 
+			 ,	(	SELECT CD_NM
+			          FROM TCMS_CF_MLNGG_SCRN_CD
+			         WHERE CD_KEY = 
+									(SELECT COM_CD_NM_KEY
+									  FROM TCMS_CF_COM_CODE
+									 WHERE GRP_CD   = 'COM402'
+									   AND COM_CD = A.SUP_BIZ_TYPE_CD)
+					   AND LNGG_CD = 'en'
+			    ) AS SUP_BIZ_TYPE_NM_EN				            -- 지급업무유형			 
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.REG_ID
+			    ) AS REG_PER_CELL_NO		 					-- 등록자 전화번호			 
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.EXEC_ID
+			    ) AS EXEC_PER_CELL_NO		 					-- 실행자 전화번호			 
+			 ,  A.SUP_TYPE
+			 ,  A.EXEC_DIV
+      		 ,  (	SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD      = A.SUP_TYPE
+							            AND    	GRP_CD 		= 'COM403')
+					   AND  LNGG_CD = 'ko'
+	            ) SUP_TYPE_NM_KO			                         -- 지급유형이름		
+      		 ,  (	SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD      = A.SUP_TYPE
+							            AND    	GRP_CD 		= 'COM403')
+					   AND  LNGG_CD = 'en'
+	            ) SUP_TYPE_NM_EN			                         -- 지급유형이름		             
+			 ,  (
+			    CASE  WHEN A.EXEC_DIV = '1'       THEN '즉시' 
+			          WHEN A.EXEC_DIV = '2'       THEN '예약'
+			          WHEN A.EXEC_DIV IN('3','4') THEN '자동'
+                      ELSE A.EXEC_DIV
+  			    END ) AS  EXEC_DIV_NM_KO		                     -- 실행구분     
+			 ,  (
+			    CASE  WHEN A.EXEC_DIV = '1'       THEN 'Immediately' 
+			          WHEN A.EXEC_DIV = '2'       THEN 'Scheduled'
+			          WHEN A.EXEC_DIV IN('3','4') THEN 'Automatic'
+                      ELSE A.EXEC_DIV
+  			    END ) AS  EXEC_DIV_NM_EN		                     -- 실행구분   			               
+			 ,  A.LIST_PRGR_ST_CD
+      		 ,  (	SELECT CD_NM
+      		          FROM TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE CD_KEY = 
+					      		    (SELECT	COM_CD_NM_KEY      
+							        FROM   	TCMS_CF_COM_CODE
+							        WHERE  	COM_CD      = A.LIST_PRGR_ST_CD
+						            AND    	GRP_CD 		= 'COM400')
+					   AND LNGG_CD = 'ko'
+	            ) LIST_PRGR_ST_NM_KO		                         -- 지급업무목록진행상태
+      		 ,  (	SELECT CD_NM
+      		          FROM TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE CD_KEY = 
+					      		    (SELECT	COM_CD_NM_KEY      
+							        FROM   	TCMS_CF_COM_CODE
+							        WHERE  	COM_CD      = A.LIST_PRGR_ST_CD
+						            AND    	GRP_CD 		= 'COM400')
+					   AND LNGG_CD = 'en'
+	            ) LIST_PRGR_ST_NM_EN		                         -- 지급업무목록진행상태	            
+			 ,  A.SUP_REQ_CNT
+			 ,  A.SUP_REQ_AMT
+			 ,  A.NORM_FINE_CNT
+			 ,  A.NORM_FINE_AMT
+			 ,  A.ERR_FINE_CNT
+			 ,  A.ERR_FINE_AMT
+			 ,  A.CL_FINE_CNT
+			 ,  A.CL_FINE_AMT
+			 
+		  FROM 	TCMS_FM_KRW_PAY_REQ		A
+		  
+		 WHERE	A.SYS_MGT_NO 		= #sys_mgt_no#
+		   AND	A.SUP_BIZ_TYPE_CD 	= #sup_biz_type_cd#
+		   AND	A.SUP_LIST_SEQ_NO 	= #sup_list_seq_no#
+    </select>      
+    
+    <!-- 조회: 알림공통처리 > 실행완료,실패시 등록자,실행자 조회(외화) -->
+    <select id="SADS20019_1" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  A.SUP_LIST_NM			-- 지급목록명
+			 ,	A.REG_ID				-- 등록자ID
+			 ,	A.EXEC_ID				-- 실행자ID
+			 ,	A.EXEC_DIV				-- 실행구분
+      		 ,  (	SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD = A.SUP_BIZ_TYPE_CD
+							            AND    	GRP_CD = 'COM402')
+					   AND  LNGG_CD = 'ko'
+	            ) SUP_BIZ_TYPE_NM_KO			                    -- 지급업무유형명	
+      		 ,  (	SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD = A.SUP_BIZ_TYPE_CD
+							            AND    	GRP_CD = 'COM402')
+					   AND  LNGG_CD = 'en'
+	            ) SUP_BIZ_TYPE_NM_EN			                    -- 지급업무유형명	            	 
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.REG_ID
+			    ) AS REG_PER_CELL_NO		 					-- 등록자 전화번호			 
+			 ,	(
+					SELECT CELL_NO
+					  FROM TCMS_CF_USER
+					 WHERE USER_ID = A.EXEC_ID
+			    ) AS EXEC_PER_CELL_NO		 					-- 실행자 전화번호			 
+			 ,  A.SUP_TYPE
+			 ,  A.EXEC_DIV
+      		 ,  (   SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD      = A.SUP_TYPE
+							            AND    	GRP_CD 		= 'COM403')
+					   AND  LNGG_CD = 'ko'
+	            ) SUP_TYPE_NM_KO			                         -- 지급유형이름		
+	         ,  (   SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD      = A.SUP_TYPE
+							            AND    	GRP_CD 		= 'COM403')
+					   AND  LNGG_CD = 'en'
+	            ) SUP_TYPE_NM_EN			                         -- 지급유형이름	
+			 ,  (
+			    CASE  WHEN A.EXEC_DIV = '1'       THEN '즉시' 
+			          WHEN A.EXEC_DIV = '2'       THEN '예약'
+			          WHEN A.EXEC_DIV IN('3','4') THEN '자동'
+                      ELSE A.EXEC_DIV
+  			    END ) AS  EXEC_DIV_NM_KO		                     -- 실행구분       
+			 ,  (
+			    CASE  WHEN A.EXEC_DIV = '1'       THEN 'Immediately' 
+			          WHEN A.EXEC_DIV = '2'       THEN 'Scheduled'
+			          WHEN A.EXEC_DIV IN('3','4') THEN 'Automatic'
+                      ELSE A.EXEC_DIV
+  			    END ) AS  EXEC_DIV_NM_EN		                     -- 실행구분    			             
+			 ,  A.LIST_PRGR_ST_CD
+      		 ,  (	SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD      = A.LIST_PRGR_ST_CD
+							            AND    	GRP_CD 		= 'COM400')
+					   AND  LNGG_CD = 'ko'
+	            ) LIST_PRGR_ST_NM_KO		                         -- 지급업무목록진행상태
+      		 ,  (	SELECT  CD_NM
+      		          FROM  TCMS_CF_MLNGG_SCRN_CD
+      		         WHERE  CD_KEY = 
+						      		    (SELECT	COM_CD_NM_KEY      
+								        FROM   	TCMS_CF_COM_CODE
+								        WHERE  	COM_CD      = A.LIST_PRGR_ST_CD
+							            AND    	GRP_CD 		= 'COM400')
+					   AND  LNGG_CD = 'en'
+	            ) LIST_PRGR_ST_NM_EN		                         -- 지급업무목록진행상태	            
+			 ,  A.SUP_REQ_CNT
+			 ,  A.NORM_FINE_CNT
+			 ,  A.ERR_FINE_CNT
+			 ,  A.CL_FINE_CNT
+			 
+		  FROM 	TCMS_FM_FOC_PAY_REQ		A
+		  
+		 WHERE	A.SYS_MGT_NO 		= #sys_mgt_no#
+		   AND	A.SUP_BIZ_TYPE_CD 	= #sup_biz_type_cd#
+		   AND	A.SUP_LIST_SEQ_NO 	= #sup_list_seq_no#
+    </select>          
+    
+    <!-- 조회: 알림공통처리 > 실행완료,실패시 등록자,실행자 조회(타행스크래핑원화) -->
+    <select id="SADS20019_2" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT  A.SUP_LIST_NM           -- 지급목록명
+             ,  A.REG_ID                -- 등록자ID
+             ,  A.EXEC_ID               -- 실행자ID
+             ,  A.EXEC_DIV              -- 실행구분
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD   = 'COM402'
+                                       AND COM_CD = A.SUP_BIZ_TYPE_CD)
+                       AND LNGG_CD = 'ko'
+                ) AS SUP_BIZ_TYPE_NM_KO                         -- 지급업무유형                        
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY
+                                      FROM TCMS_CF_COM_CODE
+                                     WHERE GRP_CD   = 'COM402'
+                                       AND COM_CD = A.SUP_BIZ_TYPE_CD)
+                       AND LNGG_CD = 'en'
+                ) AS SUP_BIZ_TYPE_NM_EN                         -- 지급업무유형            
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.REG_ID
+                ) AS REG_PER_CELL_NO                            -- 등록자 전화번호          
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.EXEC_ID
+                ) AS EXEC_PER_CELL_NO                           -- 실행자 전화번호          
+             ,  A.SUP_TYPE
+             ,  A.EXEC_DIV
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD      = A.SUP_TYPE
+                                        AND     GRP_CD      = 'COM403')
+                       AND  LNGG_CD = 'ko'
+                ) SUP_TYPE_NM_KO                                     -- 지급유형이름      
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD      = A.SUP_TYPE
+                                        AND     GRP_CD      = 'COM403')
+                       AND  LNGG_CD = 'en'
+                ) SUP_TYPE_NM_EN                                     -- 지급유형이름                   
+             ,  (
+                CASE  WHEN A.EXEC_DIV = '1'       THEN '즉시' 
+                      WHEN A.EXEC_DIV = '2'       THEN '예약'
+                      WHEN A.EXEC_DIV IN('3','4') THEN '자동'
+                      ELSE A.EXEC_DIV
+                END ) AS  EXEC_DIV_NM_KO                             -- 실행구분     
+             ,  (
+                CASE  WHEN A.EXEC_DIV = '1'       THEN 'Immediately' 
+                      WHEN A.EXEC_DIV = '2'       THEN 'Scheduled'
+                      WHEN A.EXEC_DIV IN('3','4') THEN 'Automatic'
+                      ELSE A.EXEC_DIV
+                END ) AS  EXEC_DIV_NM_EN                             -- 실행구분                           
+             ,  A.LIST_PRGR_ST_CD
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY      
+                                    FROM    TCMS_CF_COM_CODE
+                                    WHERE   COM_CD      = A.LIST_PRGR_ST_CD
+                                    AND     GRP_CD      = 'COM400')
+                       AND LNGG_CD = 'ko'
+                ) LIST_PRGR_ST_NM_KO                                 -- 지급업무목록진행상태
+             ,  (   SELECT CD_NM
+                      FROM TCMS_CF_MLNGG_SCRN_CD
+                     WHERE CD_KEY = 
+                                    (SELECT COM_CD_NM_KEY      
+                                    FROM    TCMS_CF_COM_CODE
+                                    WHERE   COM_CD      = A.LIST_PRGR_ST_CD
+                                    AND     GRP_CD      = 'COM400')
+                       AND LNGG_CD = 'en'
+                ) LIST_PRGR_ST_NM_EN                                 -- 지급업무목록진행상태              
+             ,  A.SUP_REQ_CNT
+             ,  A.SUP_REQ_AMT
+             ,  A.NORM_FINE_CNT
+             ,  A.NORM_FINE_AMT
+             ,  A.ERR_FINE_CNT
+             ,  A.ERR_FINE_AMT
+             ,  A.CL_FINE_CNT
+             ,  A.CL_FINE_AMT
+             
+          FROM  TCMS_FM_SC_KRW_PAY_REQ     A
+          
+         WHERE  A.SYS_MGT_NO        = #sys_mgt_no#
+           AND  A.SUP_BIZ_TYPE_CD   = #sup_biz_type_cd#
+           AND  A.SUP_LIST_SEQ_NO   = #sup_list_seq_no#
+    </select>      
+    
+    <!-- 조회: 알림공통처리 > 실행완료,실패시 등록자,실행자 조회(타행스크래핑외화) -->
+    <select id="SADS20019_3" parameterClass="HashMap" resultClass="LinkedHashMap" >
+        SELECT  A.SUP_LIST_NM           -- 지급목록명
+             ,  A.REG_ID                -- 등록자ID
+             ,  A.EXEC_ID               -- 실행자ID
+             ,  A.EXEC_DIV              -- 실행구분
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD = A.SUP_BIZ_TYPE_CD
+                                        AND     GRP_CD = 'COM402')
+                       AND  LNGG_CD = 'ko'
+                ) SUP_BIZ_TYPE_NM_KO                                -- 지급업무유형명  
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD = A.SUP_BIZ_TYPE_CD
+                                        AND     GRP_CD = 'COM402')
+                       AND  LNGG_CD = 'en'
+                ) SUP_BIZ_TYPE_NM_EN                                -- 지급업무유형명                   
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.REG_ID
+                ) AS REG_PER_CELL_NO                            -- 등록자 전화번호          
+             ,  (
+                    SELECT CELL_NO
+                      FROM TCMS_CF_USER
+                     WHERE USER_ID = A.EXEC_ID
+                ) AS EXEC_PER_CELL_NO                           -- 실행자 전화번호          
+             ,  A.SUP_TYPE
+             ,  A.EXEC_DIV
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD      = A.SUP_TYPE
+                                        AND     GRP_CD      = 'COM403')
+                       AND  LNGG_CD = 'ko'
+                ) SUP_TYPE_NM_KO                                     -- 지급유형이름      
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD      = A.SUP_TYPE
+                                        AND     GRP_CD      = 'COM403')
+                       AND  LNGG_CD = 'en'
+                ) SUP_TYPE_NM_EN                                     -- 지급유형이름  
+             ,  (
+                CASE  WHEN A.EXEC_DIV = '1'       THEN '즉시' 
+                      WHEN A.EXEC_DIV = '2'       THEN '예약'
+                      WHEN A.EXEC_DIV IN('3','4') THEN '자동'
+                      ELSE A.EXEC_DIV
+                END ) AS  EXEC_DIV_NM_KO                             -- 실행구분       
+             ,  (
+                CASE  WHEN A.EXEC_DIV = '1'       THEN 'Immediately' 
+                      WHEN A.EXEC_DIV = '2'       THEN 'Scheduled'
+                      WHEN A.EXEC_DIV IN('3','4') THEN 'Automatic'
+                      ELSE A.EXEC_DIV
+                END ) AS  EXEC_DIV_NM_EN                             -- 실행구분                             
+             ,  A.LIST_PRGR_ST_CD
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD      = A.LIST_PRGR_ST_CD
+                                        AND     GRP_CD      = 'COM400')
+                       AND  LNGG_CD = 'ko'
+                ) LIST_PRGR_ST_NM_KO                                 -- 지급업무목록진행상태
+             ,  (   SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                                        (SELECT COM_CD_NM_KEY      
+                                        FROM    TCMS_CF_COM_CODE
+                                        WHERE   COM_CD      = A.LIST_PRGR_ST_CD
+                                        AND     GRP_CD      = 'COM400')
+                       AND  LNGG_CD = 'en'
+                ) LIST_PRGR_ST_NM_EN                                 -- 지급업무목록진행상태              
+             ,  A.SUP_REQ_CNT
+             ,  A.NORM_FINE_CNT
+             ,  A.ERR_FINE_CNT
+             ,  A.CL_FINE_CNT
+             
+          FROM  TCMS_FM_SC_FOC_PAY_REQ     A
+          
+         WHERE  A.SYS_MGT_NO        = #sys_mgt_no#
+           AND  A.SUP_BIZ_TYPE_CD   = #sup_biz_type_cd#
+           AND  A.SUP_LIST_SEQ_NO   = #sup_list_seq_no#
+    </select>              
+    
+    <!-- 조회: 알림공통처리 > 계좌잔액 통지 -->
+    <select id="SADS20020" parameterClass="HashMap" resultClass="LinkedHashMap" >
+    <![CDATA[
+		SELECT  ACNT_SEQ_NO		
+			 , 	ACNT_NO
+			 , 	SMARK_ACNT_NO
+			 , 	BANK_CD
+			 , 	CUR_CD
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM000'
+							   AND COM_CD = A.BANK_CD)
+					   AND  LNGG_CD = 'ko'
+			    ) AS BANK_NM_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM000'
+							   AND COM_CD = A.BANK_CD)
+					   AND  LNGG_CD = 'en'
+			    ) AS BANK_NM_EN	
+			 ,  ACCT_OWN_NM
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_USER_IN
+			 		 WHERE  CD_KEY = A.ACNT_USAG_KEY
+					   AND  LNGG_CD = 'ko'
+			    ) AS ACNT_USAG_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_USER_IN
+			 		 WHERE  CD_KEY = A.ACNT_USAG_KEY
+					   AND  LNGG_CD = 'en'			 		 
+			    ) AS ACNT_USAG_EN	
+			 ,  (
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM006'
+							   AND COM_CD = A.ACNT_TYPE_CD)
+					   AND  LNGG_CD = 'ko'
+			    ) AS ACNT_TYPE_NM_KO
+			 ,	(
+			 		SELECT  CD_NM
+			 		  FROM  TCMS_CF_MLNGG_SCRN_CD
+			 		 WHERE  CD_KEY = 
+							(SELECT COM_CD_NM_KEY
+							  FROM TCMS_CF_COM_CODE
+							 WHERE GRP_CD = 'COM006'
+							   AND COM_CD = A.ACNT_TYPE_CD)
+					   AND  LNGG_CD = 'en'
+			    ) AS ACNT_TYPE_NM_EN			 
+			 ,  TO_CHAR(TO_DATE(NEW_DT,'YYYYMMDD'),'YYYY-MM-DD') AS NEW_DT
+			 ,  TO_CHAR(TO_DATE(EXPI_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EXPI_DT
+			 , 	BAL_SIGN
+			 , 	BAL
+			 ,  SUP_POSB_BAL
+			 , 	LOW_BAL_ALM_AMT
+			 ,  'D' AS ACNT_DIV
+		  FROM 	TCMS_CF_DMST_ACNT		A
+		 WHERE	USE_YN 				= 'Y'
+		   AND 	ACNT_NO				= #acnt_no# 
+		   AND 	BANK_CD				= #bank_cd# 
+		   AND 	CUR_CD				= #cur_cd# 
+		   AND 	LOW_BAL_ALM_YN		= 'Y'
+		   AND 	BAL_LST_UPD_DATE 	>= TRUNC(SYSDATE)
+		   
+     UNION ALL
+    
+        SELECT  ACNT_SEQ_NO     
+             ,  ACNT_NO
+             ,  SMARK_ACNT_NO
+             ,  BANK_CD
+             ,  CUR_CD
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM000'
+                               AND COM_CD = A.BANK_CD)
+                       AND  LNGG_CD = 'ko'
+                ) AS BANK_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM000'
+                               AND COM_CD = A.BANK_CD)
+                       AND  LNGG_CD = 'en'
+                ) AS BANK_NM_EN 
+             ,  ACCT_OWN_NM
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = A.ACNT_USAG_KEY
+                       AND  LNGG_CD = 'ko'
+                ) AS ACNT_USAG_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = A.ACNT_USAG_KEY
+                       AND  LNGG_CD = 'en'                   
+                ) AS ACNT_USAG_EN   
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM006'
+                               AND COM_CD = A.ACNT_TYPE_CD)
+                       AND  LNGG_CD = 'ko'
+                ) AS ACNT_TYPE_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM006'
+                               AND COM_CD = A.ACNT_TYPE_CD)
+                       AND  LNGG_CD = 'en'
+                ) AS ACNT_TYPE_NM_EN             
+             ,  TO_CHAR(TO_DATE(NEW_DT,'YYYYMMDD'),'YYYY-MM-DD') AS NEW_DT
+             ,  TO_CHAR(TO_DATE(EXPI_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EXPI_DT
+             ,  BAL_SIGN
+             ,  BAL
+             ,  SUP_POSB_BAL
+             ,  LOW_BAL_ALM_AMT
+             ,  'S' AS ACNT_DIV
+          FROM  TCMS_CF_SC_ACNT       A
+         WHERE  USE_YN              = 'Y'
+           AND  ACNT_NO             = #acnt_no# 
+           AND  BANK_CD             = #bank_cd# 
+           AND  CUR_CD              = #cur_cd# 
+           AND  LOW_BAL_ALM_YN      = 'Y'
+           AND  BAL_LST_UPD_DATE    >= TRUNC(SYSDATE)
+	]]>		   
+    </select>    
+    
+    <!-- 등록: 연계 SMS 등록 -->
+    <insert id="SADS20021" parameterClass="HashMap">
+    <![CDATA[
+        INSERT 
+        INTO 	EM_SMT_TRAN
+        (
+        		MT_PR        				-- PK              
+			 ,	DATE_CLIENT_REQ            	-- 전송 예약 시간
+			 ,	CONTENT     				-- 전송 메시지
+		 	 ,	CALLBACK         			-- 발신자 전화 번호(회신 번호)
+			 ,	SERVICE_TYPE        		-- 서비스 메시지 전송 타입(0-SMS MT, 1-CALLBACK URL)
+			 ,	BROADCAST_YN        		-- 동보발송유무('N' : 단일건, 'Y' :동보건)
+			 ,	MSG_STATUS             		-- 메시지 상태(1-전송대기, 2-결과대기, 3-완료)                       
+			 ,	RECIPIENT_NUM           	-- 수신자 전화 번호(수신번호)                 
+		)
+		VALUES
+		(       
+			    SQ_EM_SMT_TRAN_01.NEXTVAL
+			 ,	(
+					SELECT 	     -- SMS 발송시작시간 이전이면 시작시간으로  
+							CASE WHEN SYSDATE < TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDD') || #sms_snd_str_dtm#, 'YYYYMMDDHH24MI')  
+							     THEN TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDD') || #sms_snd_str_dtm# || '00', 'YYYYMMDDHH24MISS')
+							     
+							     -- SMS 발송종료시간 이후이면 다음날 시작시간으로
+							     WHEN SYSDATE > TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDD') || #sms_snd_end_dtm#, 'YYYYMMDDHH24MI')
+							     THEN TO_DATE(TO_CHAR(SYSDATE+1, 'YYYYMMDD') || #sms_snd_str_dtm# || '00', 'YYYYMMDDHH24MISS')
+							     
+							     -- 그외는 현재시간으로
+							     ELSE SYSDATE 
+							END			
+					  FROM 	DUAL
+				) 
+			 ,	#snd_conts#
+			 ,  NVL((
+			        SELECT REPLACE(SMS_SND_TEL_NO, '-', '') 
+			          FROM TCMS_CF_SYS 
+			         WHERE SYS_MGT_NO = #sys_mgt_no# 
+			     ), '00000000000')			  	
+			 ,	'0' 	
+			 ,	'N' 	
+			 ,	'1' 			
+			 ,	#tel_no# 			
+		)		
+	]]>		
+    </insert>        
+    
+    <!-- 조회: 알림공통처리 > 공인인증서만료 -->
+    <select id="SADS20022" parameterClass="HashMap" resultClass="LinkedHashMap" >
+    
+        SELECT  BIZ_SEQ_NO     
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = 'SMARK_BIZR_NM_KEY_'||A.BIZ_SEQ_NO
+                       AND  LNGG_CD = 'ko'
+                ) AS BIZ_SEQ_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = 'SMARK_BIZR_NM_KEY_'||A.BIZ_SEQ_NO
+                       AND  LNGG_CD = 'en'                   
+                ) AS BIZ_SEQ_NM_EN                   
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = 
+                            'SMARK_CRPN_NM_KEY_'||
+                            (
+                                SELECT CRPN_SEQ_NO
+                                  FROM TCMS_CF_DMST_BIZR
+                                 WHERE BIZ_SEQ_NO = A.BIZ_SEQ_NO 
+                            ) 
+                       AND  LNGG_CD = 'ko'
+                ) AS CRPN_SEQ_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_USER_IN
+                     WHERE  CD_KEY = 
+                            'SMARK_CRPN_NM_KEY_'||
+                            (
+                                SELECT CRPN_SEQ_NO
+                                  FROM TCMS_CF_DMST_BIZR
+                                 WHERE BIZ_SEQ_NO = A.BIZ_SEQ_NO 
+                            ) 
+                       AND  LNGG_CD = 'en'
+                ) AS CRPN_SEQ_NM_EN                                 
+             ,  BANK_CD
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT distinct COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM000'
+                               AND COM_CD = A.BANK_CD)
+                       AND  LNGG_CD = 'ko'
+                ) AS BANK_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM000'
+                               AND COM_CD = A.BANK_CD)
+                       AND  LNGG_CD = 'en'
+                ) AS BANK_NM_EN    
+             ,  OLINE_BAT_DIV            
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM117'
+                               AND COM_CD = A.OLINE_BAT_DIV)
+                       AND  LNGG_CD = 'ko'
+                ) AS OB_DIV_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                            (SELECT COM_CD_NM_KEY
+                              FROM TCMS_CF_COM_CODE
+                             WHERE GRP_CD = 'COM117'
+                               AND COM_CD = A.OLINE_BAT_DIV)
+                       AND  LNGG_CD = 'en'
+                ) AS OB_DIV_NM_EN    
+             ,  BK_TYPE_CD            
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                           (SELECT BK_TYPE_NM_KEY
+                              FROM TCMS_CF_BANKING_TYPE
+                             WHERE BANK_CD = A.BANK_CD
+                               AND BK_TYPE_CD = A.BK_TYPE_CD)
+                       AND  LNGG_CD = 'ko'
+                ) AS BK_TYPE_NM_KO
+             ,  (
+                    SELECT  CD_NM
+                      FROM  TCMS_CF_MLNGG_SCRN_CD
+                     WHERE  CD_KEY = 
+                           (SELECT BK_TYPE_NM_KEY
+                              FROM TCMS_CF_BANKING_TYPE
+                             WHERE BANK_CD = A.BANK_CD
+                               AND BK_TYPE_CD = A.BK_TYPE_CD)
+                       AND  LNGG_CD = 'en'
+                ) AS BK_TYPE_NM_EN    
+             ,  TO_CHAR(TO_DATE(CERT_REG_DT,'YYYYMMDD'),'YYYY-MM-DD') AS CERT_REG_DT
+             ,  TO_CHAR(TO_DATE(CERT_EXPI_DT,'YYYYMMDD'),'YYYY-MM-DD') AS CERT_EXPI_DT                        
+          FROM  TCMS_CF_CERT   A
+         WHERE  CERT_EXPI_DT = TO_CHAR(SYSDATE + #expi_alm_sdt#, 'YYYYMMDD')
+                   
+    </select>        
+    
+    <!-- 조회: 알림공통처리 > 신규법인카드정보조회 -->
+    <select id="SADS20023" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  A.CARD_SEQ_NO		
+			 , 	A.CARD_NO
+			 , 	A.SMARK_CARD_NO
+			 , 	A.CARD_CO_CD
+			 , 	TO_CHAR(TO_DATE(A.EFF_TERM, 'YYYYMM'), 'YYYY-MM') 		AS EFF_TERM
+			 ,	(
+					SELECT COM_CD_NM
+					  FROM TCMS_CF_COM_CODE
+					 WHERE GRP_CD = 'COM001'
+					   AND COM_CD = A.CARD_CO_CD
+			    ) AS CARD_CO_NM
+			 ,  TO_CHAR(TO_DATE(A.CARD_ISS_DT,'YYYYMMDD'),'YYYY-MM-DD')	AS CARD_ISS_DT
+			 ,  A.CTMR_NM
+			 ,  A.CARD_BNM
+			 ,	(
+					SELECT COM_CD_NM
+					  FROM TCMS_CF_COM_CODE
+					 WHERE GRP_CD = 'COM100'
+					   AND COM_CD = A.CARD_KIND_CD
+			    ) AS CARD_KIND_NM
+			 ,  A.STLMT_DT
+			 ,  A.STLMT_BANK
+			 ,	(
+					SELECT COM_CD_NM
+					  FROM TCMS_CF_COM_CODE
+					 WHERE GRP_CD = 'COM323'
+					   AND COM_CD = A.STLMT_BANK
+			    ) AS STLMT_BANK_NM
+			 ,  A.STLMT_ACNT_NO   
+		  FROM 	TCMS_CF_CARD	A
+		 WHERE	A.NEW_ISS_YN = 'Y'
+		 AND    A.AREG_DIV != 'C'  -- 해지된계좌 제외  
+		 AND    A.SYS_MGT_NO = #sys_mgt_no#
+    </select>
+    
+    <!-- 조회: 알림공통처리 > 만료도래카드정보조회 -->
+    <select id="SADS20024" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT  A.CARD_SEQ_NO		
+			 , 	A.CARD_NO
+			 , 	A.SMARK_CARD_NO
+			 , 	A.CARD_CO_CD
+			 , 	TO_CHAR(TO_DATE(A.EFF_TERM, 'YYYYMM'), 'YYYY-MM') 		AS EFF_TERM
+			 ,	(
+					SELECT COM_CD_NM
+					  FROM TCMS_CF_COM_CODE
+					 WHERE GRP_CD = 'COM001'
+					   AND COM_CD = A.CARD_CO_CD
+			    ) AS CARD_CO_NM
+			 ,  TO_CHAR(TO_DATE(A.CARD_ISS_DT,'YYYYMMDD'),'YYYY-MM-DD') AS CARD_ISS_DT
+			 ,  A.CTMR_NM
+			 ,  A.CARD_BNM
+			 ,	(
+					SELECT COM_CD_NM
+					  FROM TCMS_CF_COM_CODE
+					 WHERE GRP_CD = 'COM100'
+					   AND COM_CD = A.CARD_KIND_CD
+			    ) AS CARD_KIND_NM
+			 ,  A.STLMT_DT
+			 ,  A.STLMT_BANK
+			 ,	(
+					SELECT COM_CD_NM
+					  FROM TCMS_CF_COM_CODE
+					 WHERE GRP_CD = 'COM323'
+					   AND COM_CD = A.STLMT_BANK
+			    ) AS STLMT_BANK_NM
+			 ,  A.STLMT_ACNT_NO   
+		  FROM 	TCMS_CF_CARD	A
+		 WHERE	A.USE_YN = 'Y'
+		   AND	TO_CHAR(LAST_DAY(TO_DATE(A.EFF_TERM, 'YYYYMM')), 'YYYYMMDD') = TO_CHAR(SYSDATE + #card_expi_alm_sdt#, 'YYYYMMDD')
+		   AND  SYS_MGT_NO = #sys_mgt_no#
+    </select>
+    
+    <!-- 조회: 카드 권한이 있는 사용자ID 및 연락처 조회 -->
+    <select id="SADS20025" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT A.USER_ID
+		     , B.CELL_NO
+		  FROM TCMS_CF_AUTH_CARD A
+		     , TCMS_CF_USER      B
+		 WHERE A.USER_ID     = B.USER_ID
+		   AND A.CARD_SEQ_NO = #CARD_SEQ_NO#
+    </select>
+    
+    <!-- 조회: 계좌 권한이 있는 사용자ID 및 연락처 조회 -->
+    <select id="SADS20026" parameterClass="HashMap" resultClass="LinkedHashMap" >
+		SELECT A.USER_ID
+		     , B.CELL_NO
+		  FROM TCMS_CF_AUTH_DMST_ACNT A
+		     , TCMS_CF_USER      B
+		 WHERE A.USER_ID     = B.USER_ID
+		   AND A.ACNT_SEQ_NO = #ACNT_SEQ_NO#
+		   
+	     UNION
+	     
+   		SELECT A.USER_ID
+		     , B.CELL_NO
+		  FROM TCMS_CF_AUTH_OVRS_ACNT A
+		     , TCMS_CF_USER      B
+		 WHERE A.USER_ID     = B.USER_ID
+		   AND A.ACNT_SEQ_NO = #ACNT_SEQ_NO#
+    </select>
+    
+    
+    <!-- 조회: 제한업종조회 -->
+    <select id="SADS20028" parameterClass="HashMap" resultClass="LinkedHashMap">
+    	SELECT 	COM_CD_NM													-- 코드명
+		  FROM 	TCMS_CF_COM_CODE
+		 WHERE 	GRP_CD = 'COM324'
+      ORDER BY 	SORT_SEQ	  
+    </select>
+    
+    <!-- 조회: 알림공통처리 > 카드승인내역의 제한업종내역 조회 -->
+    <select id="SADS20029" parameterClass="HashMap" resultClass="LinkedHashMap" >
+     	SELECT	A.APV_DT || A.APV_DTM						AS APV_DTM		-- 승인일시
+    		,	NVL(E.SMARK_CRPN_NM, E.CRPN_NM)				AS CRPN_NM		-- 법인명
+    		,	NVL(D.SMARK_BIZ_NM, D.BIZ_NM)				AS BIZ_NM		-- 사업장명
+    		,	(
+    				SELECT COM_CD_NM
+        			  FROM TCMS_CF_COM_CODE
+        			 WHERE GRP_CD = 'COM001'
+        			   AND COM_CD = A.CARD_CO_CD
+    			)											AS CARD_CO_NM	-- 카드사명
+    		,	A.CARD_CO_CD												-- 카드사
+    		,   A.CARD_NO                                                   -- 카드번호	
+    		,	NVL(B.SMARK_CARD_NO, B.CARD_NO)				AS SMARK_CARD_NO -- 카드번호
+    		,	B.CARD_BNM													-- 카드별칭
+   			,	A.ABRD_USE_YN												-- 해외사용구분
+   			,	A.TRNS_CUR_CD												-- 통화코드
+   			,	A.APV_AMT													-- 승인금액
+   			,	A.VAT_AMT													-- 부가세
+   			,	A.SRV_AMT													-- 봉사료
+   			,	A.APV_SUM_AMT												-- 승인합계금액
+       		,	A.APV_NO													-- 승인번호
+    		,	A.FRAN_BIZR_NO												-- 가맹점사업자번호
+   			,	A.FRAN_NO													-- 가맹점번호
+   			,	A.FRAN_NM													-- 가맹점명
+   			,	A.FRAN_OWNER_NM												-- 가맹점대표자명
+   			,	A.FRAN_TEL_NO												-- 가맹점전화번호
+   			,	A.FRAN_POST_NO												-- 가맹점우편번호
+   			,	A.FRAN_ADDR_1 || ' ' || A.FRAN_ADDR_2		AS FRAN_ADDR	-- 가맹점주소
+   			,	A.TPBZ_NM													-- 업종명
+   			,	A.TPBZ_CD													-- 업종코드
+    	  FROM	TCMS_CD_CARD_APV 	A
+    	  	,	TCMS_CF_CARD 		B
+			,   TCMS_CF_DMST_BIZR   D 
+			,   TCMS_CF_DMST_CRPN   E
+    	 WHERE	A.CARD_SEQ_NO 	= B.CARD_SEQ_NO
+    	   AND	B.BIZ_SEQ_NO	= D.BIZ_SEQ_NO
+    	   AND	D.CRPN_SEQ_NO	= E.CRPN_SEQ_NO
+    	   AND  D.SYS_MGT_NO    = #sys_mgt_no#
+    	-- 사용여부,등록완료Set --
+   		   AND	B.USE_YN 	  	= 'Y'
+   		   AND	B.NEW_ISS_YN  	= 'N'
+    	   AND	A.APV_DT        = #apv_dt# 
+    	-- 국내사용건으로 제한Set -- 
+    	   AND	A.ABRD_USE_YN 	= 'A'
+	
+		-- 비인가업종사용Set --
+			AND	(
+					$not_conf_tpbz_nm$
+				)
+
+    </select>    
+        
+</sqlMap>

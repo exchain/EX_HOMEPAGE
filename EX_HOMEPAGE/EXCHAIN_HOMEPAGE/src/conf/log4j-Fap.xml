@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration PUBLIC "-//log4j/log4j Configuration//EN" "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+    <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%d{MM/dd HH:mm:ss,SSS}] %p [%c][%M][%L] %m%n" />
+        </layout>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="Result" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+    </appender>
+
+    <appender name="LOGFILE" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="file" value="${exchain.log.home}/faplog/fwf-fap.log" />
+        <!-- param name="Encoding" value="UTF-8" / -->
+        <param name="DatePattern" value="'.'yyyy-MM-dd" />
+        <param name="ImmediateFlush" value="true" />
+        <param name="Append" value="true" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%d{MM/dd HH:mm:ss,SSS}] %p [%c][%M][%L] %m%n" />
+        </layout>
+    </appender>
+
+    <!-- specify the logging level for loggers from other libraries -->
+    <logger name="com.ibatis">
+        <level value="DEBUG"/> <!-- level value="INFO" /-->
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </logger>
+        
+    <logger name="java.sql.PreparedStatement">
+        <level value="DEBUG"/>
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </logger>
+    
+    <logger name="com.finger">
+        <level value="DEBUG"/>
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </logger>   
+
+    <!-- for all other loggers log only debug and above log messages -->
+    <!-- 
+    <root>
+        <priority value="DEBUG"/>
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </root>
+    -->
+
+</log4j:configuration>

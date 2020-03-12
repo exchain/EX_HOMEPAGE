@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd" >
+<properties>
+    <!-- Used By: com.finger.fwf.core.config.FWFApsConfig -->
+    <comment>Exchain-WebFrame Application Server Configuration</comment>
+ 	<entry key="REAL_SERVERS_ADDRESS">112.216.70.218</entry> 
+     <!-- <entry key="REAL_SERVERS_ADDRESS">127.0.0.1</entry> -->
+    <entry key="REAL_DEV_SERVERS_CHK">DEV</entry>
+    <entry key="SYS_ID">EXCHAIN</entry>    
+    
+    <!-- ## Application Server PORT Information /-->
+    <entry key="PORT_APP_SERVER" >45005</entry>
+
+    <entry key="TASKS_XML_FILE" >conf/fwfApsvrTasks.xml</entry>
+    <entry key="SQLMAPCONFIG_FILE" >conf/SqlMapConfigA.xml</entry>
+    <entry key="SQLMAPCONFIG_DBConn" >conf/dbconnA.properties</entry>
+
+    <entry key="ScheduleList_TaskID">SADM40050</entry><!-- 스케쥴목록조회(TASK-ID) -->
+    <entry key="ScheduleSvrIp_TaskID">SADM40100</entry><!-- 스케쥴서버IP조회(TASK-ID) -->
+    <entry key="ScheduleSvrIpUp_TaskID">SADM40110</entry><!-- 스케쥴서버IP수정(TASK-ID) -->
+
+</properties>

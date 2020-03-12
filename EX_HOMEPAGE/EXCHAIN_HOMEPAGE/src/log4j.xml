@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration PUBLIC "-//log4j/log4j Configuration//EN" "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+    <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%d{MM/dd HH:mm:ss,SSS}] %p [%c][%M][%L] %m%n" />
+        </layout>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="Result" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="receiveFWF dataBuf" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="Executing Statement" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="IGNORE_LOG" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="SADM00130" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="SADM00140" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+        <filter class="org.apache.log4j.varia.StringMatchFilter">
+            <param name="StringToMatch" value="SADM00150" />
+            <param name="AcceptOnMatch" value="false" />
+        </filter>
+    </appender>
+
+    <appender name="LOGFILE" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="file" value="${exchain.log.home}/uxlog/fwf-ux.log" />
+        <!-- param name="Encoding" value="UTF-8" / -->
+        <param name="DatePattern" value="'.'yyyy-MM-dd" />
+        <param name="ImmediateFlush" value="true" />
+        <param name="Append" value="true" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%d{MM/dd HH:mm:ss,SSS}] %p [%c][%M][%L] %m%n" />
+        </layout>
+    </appender>
+
+    <!-- specify the logging level for loggers from other libraries -->
+    <!--
+    <logger name="com.ibatis">
+        <level value="DEBUG"/> 
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </logger>
+
+    <logger name="java.sql">
+        <level value="DEBUG"/>
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </logger>
+
+
+    <logger name="com.finger" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </logger>   
+    -->
+    <!-- for all other loggers log only debug and above log messages -->
+    <root>
+        <priority value="DEBUG"/>
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOGFILE" />
+    </root>
+
+</log4j:configuration>
